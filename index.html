@@ -1,0 +1,2199 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeasEval — Comparer vos offres LOA / LLD</title>
+  <meta name="description" content="LeasEval vous aide à évaluer et comparer vos propositions commerciales de LOA et LLD automobile.">
+  <meta name="theme-color" content="#1A73E8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Inter:wght@300..700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- LeasEval Config — Vercel injects env vars at build time via this block -->
+  <script>
+    // Ces valeurs sont remplacées automatiquement par Vercel via vercel.json
+    // ou injectées manuellement si tu modifies ce fichier directement
+	 window.SUPABASE_URL = 'https://buaesorxxiftqvxpdqcz.supabase.co';
+	 window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1YWVzb3J4eGlmdHF2eHBkcWN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3OTgyNjcsImV4cCI6MjA5MzM3NDI2N30.Q3kwaVxIdJ_L-K-kX1_uPvXG31n2gyyR4tKKfZnMnRE';
+  </script>
+  <style>
+
+    :root,[data-theme="light"]{
+      --font-display:'DM Sans','Helvetica Neue',sans-serif;
+      --font-body:'Inter','Helvetica Neue',sans-serif;
+      --color-bg:#F8F9FC;--color-surface:#FFFFFF;--color-surface-2:#F0F4FF;
+      --color-surface-offset:#E8EDF8;--color-divider:#E2E8F0;--color-border:#CBD5E1;
+      --color-text:#0D1B2A;--color-text-muted:#4A5568;--color-text-faint:#94A3B8;
+      --color-text-inverse:#FFFFFF;--color-navy:#0D1B2A;
+      --color-primary:#1A73E8;--color-primary-hover:#1558B0;--color-primary-soft:#EBF3FD;
+      --color-success:#16A34A;--color-success-soft:#DCFCE7;
+      --color-warning:#D97706;--color-warning-soft:#FEF3C7;
+      --color-error:#DC2626;--color-error-soft:#FEE2E2;
+      --radius-sm:.375rem;--radius-md:.5rem;--radius-lg:.75rem;--radius-xl:1rem;--radius-2xl:1.5rem;--radius-full:9999px;
+      --space-1:.25rem;--space-2:.5rem;--space-3:.75rem;--space-4:1rem;--space-5:1.25rem;--space-6:1.5rem;
+      --space-8:2rem;--space-10:2.5rem;--space-12:3rem;--space-16:4rem;
+      --text-xs:clamp(.75rem,.7rem + .25vw,.875rem);--text-sm:clamp(.875rem,.8rem + .35vw,1rem);
+      --text-base:clamp(1rem,.95rem + .25vw,1.125rem);--text-lg:clamp(1.125rem,1rem + .75vw,1.5rem);
+      --text-xl:clamp(1.5rem,1.2rem + 1.25vw,2.25rem);
+      --shadow-sm:0 1px 3px rgba(13,27,42,.06),0 1px 2px rgba(13,27,42,.04);
+      --shadow-md:0 4px 12px rgba(13,27,42,.08),0 2px 4px rgba(13,27,42,.05);
+      --shadow-lg:0 12px 32px rgba(13,27,42,.12),0 4px 8px rgba(13,27,42,.06);
+      --shadow-card:0 2px 8px rgba(13,27,42,.07);
+      --transition:180ms cubic-bezier(.16,1,.3,1);
+      --content-wide:1240px;
+    }
+    [data-theme="dark"]{
+      --color-bg:#0A0F18;--color-surface:#101828;--color-surface-2:#1A2440;
+      --color-surface-offset:#1E2A45;--color-divider:#1E2D45;--color-border:#2D3F5C;
+      --color-text:#E2E8F0;--color-text-muted:#94A3B8;--color-text-faint:#4A5568;
+      --color-navy:#E2E8F0;--color-primary:#4A9BF5;--color-primary-hover:#2D82E8;
+      --color-primary-soft:#112040;--color-success:#4ADE80;--color-success-soft:#052E16;
+      --color-warning:#FBD14B;--color-warning-soft:#2D1A00;--color-error:#F87171;--color-error-soft:#2D0000;
+      --shadow-card:0 2px 8px rgba(0,0,0,.35);--shadow-lg:0 12px 32px rgba(0,0,0,.5);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;scroll-behavior:smooth}
+    body{min-height:100dvh;font-family:var(--font-body);font-size:var(--text-base);color:var(--color-text);background:var(--color-bg);transition:background var(--transition),color var(--transition)}
+    img,svg{display:block;max-width:100%}
+    input,button,select,textarea{font:inherit;color:inherit}
+    button{cursor:pointer;background:none;border:none}
+    :focus-visible{outline:2px solid var(--color-primary);outline-offset:3px;border-radius:var(--radius-sm)}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+    /* Layout */
+    .app-wrapper{display:flex;flex-direction:column;min-height:100dvh}
+    .topbar{position:sticky;top:0;z-index:100;background:var(--color-surface);border-bottom:1px solid var(--color-divider);box-shadow:var(--shadow-sm)}
+    .topbar-inner{max-width:var(--content-wide);margin:0 auto;padding:0 var(--space-6);height:60px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-4)}
+    .main-content{flex:1;max-width:var(--content-wide);margin:0 auto;width:100%;padding:var(--space-8) var(--space-6)}
+    /* Logo */
+    .logo{display:flex;align-items:center;gap:var(--space-2);text-decoration:none;color:var(--color-text)}
+    .logo-text{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;letter-spacing:-.02em;color:var(--color-navy)}
+    .logo-text span{color:var(--color-primary)}
+    /* Topbar */
+    .topbar-actions{display:flex;align-items:center;gap:var(--space-3)}
+    .lang-toggle{font-size:var(--text-xs);font-weight:600;padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);border:1px solid var(--color-border);color:var(--color-text-muted);transition:all var(--transition)}
+    .lang-toggle:hover{background:var(--color-surface-2);color:var(--color-text)}
+    .lang-toggle.active{background:var(--color-primary);color:white;border-color:var(--color-primary)}
+    .theme-btn{width:36px;height:36px;border-radius:var(--radius-full);border:1px solid var(--color-border);display:flex;align-items:center;justify-content:center;color:var(--color-text-muted);transition:all var(--transition)}
+    .theme-btn:hover{background:var(--color-surface-2);color:var(--color-text)}
+    /* Tabs */
+    .tabs{display:flex;gap:var(--space-1);background:var(--color-surface-2);padding:var(--space-1);border-radius:var(--radius-xl);border:1px solid var(--color-divider);width:fit-content}
+    .tab-btn{padding:var(--space-2) var(--space-5);border-radius:calc(var(--radius-xl) - 4px);font-size:var(--text-sm);font-weight:500;color:var(--color-text-muted);transition:all var(--transition);white-space:nowrap}
+    .tab-btn:hover{color:var(--color-text);background:var(--color-surface)}
+    .tab-btn.active{background:var(--color-surface);color:var(--color-primary);font-weight:600;box-shadow:var(--shadow-sm)}
+    .tab-panel{display:none}.tab-panel.active{display:block}
+    /* Page header */
+    .page-header{margin-bottom:var(--space-8)}
+    .page-header h1{font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:var(--color-navy);letter-spacing:-.02em;margin-bottom:var(--space-2)}
+    .page-header p{font-size:var(--text-sm);color:var(--color-text-muted)}
+    /* Cards */
+    .card{background:var(--color-surface);border-radius:var(--radius-xl);border:1px solid var(--color-divider);box-shadow:var(--shadow-card);padding:var(--space-6)}
+    .card-header{margin-bottom:var(--space-5);padding-bottom:var(--space-4);border-bottom:1px solid var(--color-divider);display:flex;align-items:center;gap:var(--space-3)}
+    .card-header-icon{width:36px;height:36px;border-radius:var(--radius-lg);background:var(--color-primary-soft);display:flex;align-items:center;justify-content:center;color:var(--color-primary);flex-shrink:0}
+    .card-header h2{font-family:var(--font-display);font-size:var(--text-base);font-weight:600;color:var(--color-navy)}
+    .card-header p{font-size:var(--text-xs);color:var(--color-text-muted)}
+    /* Form */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)}
+    .form-grid.three{grid-template-columns:1fr 1fr 1fr}
+    .form-group{display:flex;flex-direction:column;gap:var(--space-2)}
+    .form-label{font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);letter-spacing:.03em;text-transform:uppercase}
+    .form-input{height:44px;padding:0 var(--space-4);border-radius:var(--radius-lg);border:1.5px solid var(--color-border);background:var(--color-bg);color:var(--color-text);font-size:var(--text-sm);transition:border-color var(--transition),box-shadow var(--transition)}
+    .form-input:focus{border-color:var(--color-primary);box-shadow:0 0 0 3px rgba(26,115,232,.12);outline:none}
+    .form-input::placeholder{color:var(--color-text-faint)}
+    .form-input-prefix{position:relative}
+    .form-input-prefix .prefix{position:absolute;left:var(--space-4);top:50%;transform:translateY(-50%);color:var(--color-text-muted);font-size:var(--text-sm);pointer-events:none}
+    .form-input-prefix input{padding-left:var(--space-8)}
+    .form-hint{font-size:var(--text-xs);color:var(--color-text-faint)}
+    /* Services */
+    .services-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)}
+    .service-toggle{display:flex;align-items:center;justify-content:space-between;padding:var(--space-2) var(--space-3);border-radius:var(--radius-lg);border:1.5px solid var(--color-divider);background:var(--color-bg);transition:all var(--transition);cursor:pointer;gap:var(--space-2)}
+    .service-toggle:hover{border-color:var(--color-primary);background:var(--color-primary-soft)}
+    .service-toggle.on{border-color:var(--color-primary);background:var(--color-primary-soft)}
+    .service-info{display:flex;align-items:center;gap:var(--space-2)}
+    .service-icon{width:28px;height:28px;border-radius:var(--radius-md);background:var(--color-surface-offset);display:flex;align-items:center;justify-content:center;color:var(--color-text-muted);flex-shrink:0;font-size:14px;transition:all var(--transition)}
+    .service-toggle.on .service-icon{background:var(--color-primary);color:white}
+    .service-name{font-size:var(--text-xs);font-weight:500;color:var(--color-text)}
+    .toggle-switch{width:36px;height:20px;border-radius:var(--radius-full);background:var(--color-border);position:relative;transition:background var(--transition);flex-shrink:0}
+    .toggle-switch::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:white;top:3px;left:3px;transition:transform var(--transition);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+    .service-toggle.on .toggle-switch{background:var(--color-primary)}
+    .service-toggle.on .toggle-switch::after{transform:translateX(16px)}
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-5);border-radius:var(--radius-lg);font-size:var(--text-sm);font-weight:600;transition:all var(--transition);white-space:nowrap;height:44px}
+    .btn-primary{background:var(--color-primary);color:white}
+    .btn-primary:hover{background:var(--color-primary-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(26,115,232,.3)}
+    .btn-primary:active{transform:translateY(0)}
+    .btn-secondary{background:var(--color-surface);color:var(--color-text);border:1.5px solid var(--color-border)}
+    .btn-secondary:hover{background:var(--color-surface-2);border-color:var(--color-primary);color:var(--color-primary)}
+    .btn-ghost{color:var(--color-text-muted);padding:var(--space-2) var(--space-3)}
+    .btn-ghost:hover{color:var(--color-primary);background:var(--color-primary-soft)}
+    .btn-danger{background:var(--color-error-soft);color:var(--color-error);border:1px solid var(--color-error)}
+    .btn-danger:hover{background:var(--color-error);color:white}
+    .btn-sm{height:36px;padding:var(--space-1) var(--space-4);font-size:var(--text-xs)}
+    .btn-group{display:flex;gap:var(--space-3);align-items:center;flex-wrap:wrap}
+    /* Results */
+    .results-section{display:none;animation:fadeUp .35s ease}
+    .results-section.visible{display:block}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    .results-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-4);margin-bottom:var(--space-4)}
+    .results-grid.wide{grid-template-columns:1fr 1fr}
+    .kpi-card{background:var(--color-surface);border-radius:var(--radius-xl);border:1px solid var(--color-divider);padding:var(--space-5);box-shadow:var(--shadow-card)}
+    .kpi-label{font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:var(--space-2)}
+    .kpi-value{font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:var(--color-navy);letter-spacing:-.02em;line-height:1;margin-bottom:var(--space-1)}
+    .kpi-sub{font-size:var(--text-xs);color:var(--color-text-muted)}
+    .score-badge{display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);font-size:var(--text-xs);font-weight:700;margin-top:var(--space-3)}
+    .score-badge.good{background:var(--color-success-soft);color:var(--color-success)}
+    .score-badge.ok{background:var(--color-warning-soft);color:var(--color-warning)}
+    .score-badge.bad{background:var(--color-error-soft);color:var(--color-error)}
+    .progress-track{height:8px;border-radius:var(--radius-full);background:var(--color-surface-offset);position:relative;overflow:hidden;margin-top:var(--space-3)}
+    .progress-fill{height:100%;border-radius:var(--radius-full);transition:width .5s cubic-bezier(.16,1,.3,1)}
+    .progress-fill.good{background:var(--color-success)}.progress-fill.ok{background:var(--color-warning)}.progress-fill.bad{background:var(--color-error)}
+    .thresholds-row{display:flex;justify-content:space-between;margin-top:var(--space-1)}
+    /* History */
+    .history-list{display:flex;flex-direction:column;gap:var(--space-3)}
+    .history-item{background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-xl);padding:var(--space-4) var(--space-5);display:flex;align-items:center;gap:var(--space-4);transition:box-shadow var(--transition);cursor:pointer}
+    .history-item:hover{box-shadow:var(--shadow-md);border-color:var(--color-primary)}
+    .history-badge{width:44px;height:44px;border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;font-size:var(--text-sm);font-weight:700;flex-shrink:0}
+    .history-badge.good{background:var(--color-success-soft);color:var(--color-success)}
+    .history-badge.ok{background:var(--color-warning-soft);color:var(--color-warning)}
+    .history-badge.bad{background:var(--color-error-soft);color:var(--color-error)}
+    .history-info{flex:1;min-width:0}
+    .history-title{font-size:var(--text-sm);font-weight:600;color:var(--color-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .history-meta{font-size:var(--text-xs);color:var(--color-text-muted);margin-top:var(--space-1)}
+    .history-kpis{display:flex;gap:var(--space-4);flex-shrink:0}
+    .history-kpi{text-align:right}
+    .history-kpi-val{font-size:var(--text-sm);font-weight:700;color:var(--color-navy)}
+    .history-kpi-label{font-size:10px;color:var(--color-text-faint)}
+    .history-actions{display:flex;gap:var(--space-2)}
+    /* Premium */
+    .premium-lock{position:relative}
+    .premium-blur{filter:blur(6px);user-select:none;pointer-events:none}
+    .premium-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-3);background:rgba(255,255,255,.6);backdrop-filter:blur(2px);border-radius:var(--radius-xl)}
+    [data-theme="dark"] .premium-overlay{background:rgba(10,15,24,.7)}
+    /* Modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(13,27,42,.5);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:var(--space-4)}
+    .modal-backdrop.open{display:flex}
+    .modal{background:var(--color-surface);border-radius:var(--radius-2xl);padding:var(--space-8);max-width:480px;width:100%;box-shadow:var(--shadow-lg);animation:fadeUp .25s ease}
+    .modal h2{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--color-navy);margin-bottom:var(--space-2)}
+    .modal p{font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-6)}
+    .modal-features{list-style:none;margin-bottom:var(--space-6);display:flex;flex-direction:column;gap:var(--space-3)}
+    .modal-features li{display:flex;align-items:center;gap:var(--space-3);font-size:var(--text-sm)}
+    .modal-feature-icon{width:24px;height:24px;border-radius:var(--radius-full);background:var(--color-success-soft);display:flex;align-items:center;justify-content:center;color:var(--color-success);flex-shrink:0}
+    .price-badge{display:inline-flex;align-items:baseline;gap:var(--space-2);margin-bottom:var(--space-4)}
+    .price-amount{font-family:var(--font-display);font-size:var(--text-xl);font-weight:800;color:var(--color-primary)}
+    .price-desc{font-size:var(--text-xs);color:var(--color-text-muted)}
+    /* Empty state */
+    .empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;padding:var(--space-16) var(--space-8);color:var(--color-text-muted)}
+    .empty-state-icon{width:56px;height:56px;border-radius:var(--radius-2xl);background:var(--color-surface-2);display:flex;align-items:center;justify-content:center;color:var(--color-text-faint);margin-bottom:var(--space-4)}
+    .empty-state h3{font-family:var(--font-display);font-size:var(--text-base);font-weight:600;color:var(--color-text);margin-bottom:var(--space-2)}
+    .empty-state p{font-size:var(--text-sm);max-width:36ch;margin-bottom:var(--space-6)}
+    /* Slider coût */
+    @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+    .cost-summary-row{display:flex;align-items:center;gap:var(--space-4);padding:var(--space-4);background:var(--color-surface-2);border-radius:var(--radius-lg);margin-bottom:var(--space-5)}
+    .cost-summary-item{flex:1;text-align:center}
+    .cost-summary-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-muted);margin-bottom:var(--space-1)}
+    .cost-summary-value{font-family:var(--font-display);font-size:var(--text-base);font-weight:700;color:var(--color-navy)}
+    .cost-summary-sep{color:var(--color-text-faint);font-size:var(--text-lg);font-weight:300}
+    .slider-section{padding:var(--space-4) var(--space-5) var(--space-3);background:var(--color-surface);border-radius:var(--radius-xl);border:1px solid var(--color-divider)}
+    .slider-tag{color:white}
+    [data-theme="dark"] .slider-tag{color:#1a1a1a}
+    .slider-track-wrap{position:relative;height:28px;margin:var(--space-8) 0 var(--space-2)}
+    .slider-track{position:absolute;top:50%;transform:translateY(-50%);left:0;right:0;height:10px;border-radius:var(--radius-full);overflow:hidden;background:var(--color-surface-offset)}
+    .slider-seg-green{position:absolute;left:0;top:0;height:100%;background:var(--color-success);transition:width .4s cubic-bezier(.16,1,.3,1)}
+    .slider-seg-orange{position:absolute;top:0;height:100%;background:var(--color-warning);transition:left .4s cubic-bezier(.16,1,.3,1),width .4s cubic-bezier(.16,1,.3,1)}
+    .slider-seg-red{position:absolute;top:0;height:100%;background:var(--color-error);transition:left .4s cubic-bezier(.16,1,.3,1),width .4s cubic-bezier(.16,1,.3,1)}
+    .slider-marker{position:absolute;top:50%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,.2);cursor:pointer;transition:left .4s cubic-bezier(.16,1,.3,1);z-index:10}
+    .slider-marker-label{position:absolute;top:-26px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;white-space:nowrap;color:var(--color-text)}
+    .slider-marker-val{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:600;white-space:nowrap}
+    .slider-result-marker{position:absolute;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;border:3px solid white;box-shadow:0 3px 8px rgba(0,0,0,.25);z-index:20;cursor:grab;display:flex;align-items:center;justify-content:center;transition:left .4s cubic-bezier(.16,1,.3,1)}
+    .slider-result-marker:active{cursor:grabbing}
+    .slider-result-marker-inner{width:10px;height:10px;border-radius:50%;background:white}
+    .slider-legend{display:flex;justify-content:space-between;font-size:10px;color:var(--color-text-faint);margin-top:var(--space-1)}
+    .slider-reset-btn{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--color-primary);font-weight:600;margin-top:var(--space-2);background:none;border:none;cursor:pointer;padding:2px var(--space-2);border-radius:var(--radius-sm)}
+    .slider-reset-btn:hover{background:var(--color-primary-soft)}
+    .slider-thresholds{display:flex;justify-content:space-between;align-items:center;margin-top:var(--space-2)}
+    .slider-threshold-item{display:flex;align-items:center;gap:var(--space-2)}
+    .slider-threshold-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    /* Equation row */
+    .equation-row{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4);background:var(--color-surface-2);border-radius:var(--radius-lg);flex-wrap:wrap}
+    .eq-item{text-align:center}
+    .eq-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-muted);margin-bottom:var(--space-1)}
+    .eq-value{font-family:var(--font-display);font-size:var(--text-base);font-weight:700;color:var(--color-navy)}
+    .eq-op{color:var(--color-text-faint);font-size:var(--text-lg);font-weight:300;flex-shrink:0}
+	 #res-cf-formula{display:none!important;}
+    /* Toast */
+    .toast-container{position:fixed;bottom:var(--space-6);right:var(--space-6);z-index:300;display:flex;flex-direction:column;gap:var(--space-2)}
+    .toast{background:var(--color-navy);color:white;padding:var(--space-3) var(--space-5);border-radius:var(--radius-lg);font-size:var(--text-sm);font-weight:500;box-shadow:var(--shadow-lg);animation:toastIn .25s ease;display:flex;align-items:center;gap:var(--space-2)}
+    @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .toast.success{background:var(--color-success)}.toast.error{background:var(--color-error)}
+    /* Utils */
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+    .loa-only{}
+    .disabled-block{opacity:.45;pointer-events:none;filter:grayscale(.3);}
+    .section-title{font-family:var(--font-display);font-size:var(--text-base);font-weight:600;color:var(--color-navy);margin-bottom:var(--space-4);display:flex;align-items:center;gap:var(--space-2)}
+    .section-title-line{flex:1;height:1px;background:var(--color-divider)}
+    .tag{display:inline-flex;align-items:center;gap:var(--space-1);padding:2px var(--space-2);border-radius:var(--radius-full);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+    .tag-loa{background:var(--color-primary-soft);color:var(--color-primary)}
+    .tag-lld{background:var(--color-surface-offset);color:var(--color-text-muted)}
+    .divider{border:none;border-top:1px solid var(--color-divider);margin:var(--space-6) 0}
+    .w-full{width:100%}
+    /* Responsive */
+    @media(max-width:900px){
+      .sim-layout{grid-template-columns:1fr!important}
+      .results-grid{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:768px){
+      .main-content{padding:var(--space-4)}
+      .form-grid{grid-template-columns:1fr}
+      .form-grid.three{grid-template-columns:1fr 1fr}
+      .results-grid{grid-template-columns:1fr 1fr}
+      .results-grid.wide{grid-template-columns:1fr}
+      .history-kpis{display:none}
+      .services-grid{grid-template-columns:1fr 1fr}
+      .tabs{overflow-x:auto;width:100%}
+    }
+    @media(max-width:480px){
+      .topbar-inner{padding:0 var(--space-4)}
+      .form-grid.three{grid-template-columns:1fr}
+      .results-grid{grid-template-columns:1fr}
+      .kpi-value{font-size:var(--text-lg)}
+    }
+  
+
+/* ===== LEASEVAL WEB EXTENSIONS ===== */
+
+/* Auth modal */
+.auth-modal-backdrop{position:fixed;inset:0;background:rgba(13,27,42,.55);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;padding:var(--space-4)}
+.auth-modal-backdrop.open{display:flex}
+.auth-modal{background:var(--color-surface);border-radius:var(--radius-2xl);padding:var(--space-8);max-width:400px;width:100%;box-shadow:var(--shadow-lg);animation:fadeUp .25s ease;position:relative}
+.auth-modal h2{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--color-navy);margin-bottom:var(--space-2)}
+.auth-modal p{font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-6)}
+.auth-error{font-size:var(--text-xs);color:var(--color-error);margin-top:var(--space-2);display:none;padding:var(--space-2) var(--space-3);background:var(--color-error-soft);border-radius:var(--radius-md)}
+.auth-error.visible{display:block}
+.auth-switch{font-size:var(--text-sm);color:var(--color-text-muted);text-align:center;margin-top:var(--space-4)}
+.auth-switch button{color:var(--color-primary);font-weight:600;background:none;border:none;cursor:pointer;padding:0}
+.auth-switch button:hover{text-decoration:underline}
+.form-input-eye{position:relative}
+.form-input-eye input{padding-right:44px}
+.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--color-text-muted);padding:0;display:flex;align-items:center}
+
+/* Topbar auth */
+.auth-topbar{display:flex;align-items:center;gap:var(--space-2);position:relative}
+.user-avatar{width:32px;height:32px;border-radius:var(--radius-full);background:var(--color-primary);color:white;display:flex;align-items:center;justify-content:center;font-size:var(--text-xs);font-weight:700;cursor:pointer;border:2px solid transparent;transition:all var(--transition);flex-shrink:0}
+.user-avatar:hover{border-color:var(--color-primary-hover)}
+.user-menu{position:absolute;top:calc(100% + 8px);right:0;z-index:200;background:var(--color-surface);border:1px solid var(--color-divider);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);padding:var(--space-2);min-width:210px;display:none}
+.user-menu.open{display:block;animation:fadeUp .18s ease}
+.user-menu-header{padding:var(--space-3) var(--space-3) var(--space-2);border-bottom:1px solid var(--color-divider);margin-bottom:var(--space-2)}
+.user-menu-email{font-size:var(--text-xs);color:var(--color-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.user-menu-badge{display:inline-flex;align-items:center;gap:var(--space-1);font-size:10px;font-weight:700;padding:2px var(--space-2);border-radius:var(--radius-full);margin-top:var(--space-1)}
+.user-menu-badge.premium{background:var(--color-primary-soft);color:var(--color-primary)}
+.user-menu-badge.free{background:var(--color-surface-offset);color:var(--color-text-muted)}
+.user-menu-badge.admin{background:#FEF3C7;color:#D97706}
+.user-menu-item{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-2) var(--space-3);border-radius:var(--radius-lg);font-size:var(--text-sm);color:var(--color-text);cursor:pointer;transition:all var(--transition);width:100%;text-align:left;border:none;background:none}
+.user-menu-item:hover{background:var(--color-surface-2)}
+.user-menu-item.danger{color:var(--color-error)}
+.user-menu-item.danger:hover{background:var(--color-error-soft)}
+
+/* Sync badge */
+.sync-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:var(--radius-full);color:var(--color-text-muted);background:var(--color-surface-offset);transition:all var(--transition)}
+.sync-badge.syncing{color:var(--color-primary);background:var(--color-primary-soft)}
+.sync-badge.synced{color:var(--color-success);background:var(--color-success-soft)}
+.sync-badge svg{width:10px;height:10px;flex-shrink:0}
+.sync-badge.syncing svg{animation:spin .8s linear infinite}
+
+/* Premium banner */
+.premium-banner{background:linear-gradient(135deg,var(--color-primary-soft),#f0f7ff);border:1px solid var(--color-primary);border-radius:var(--radius-xl);padding:var(--space-4) var(--space-5);display:flex;align-items:center;gap:var(--space-4);margin-bottom:var(--space-6)}
+[data-theme="dark"] .premium-banner{background:linear-gradient(135deg,var(--color-primary-soft),rgba(74,155,245,.06))}
+.premium-banner-text{flex:1}
+.premium-banner-text strong{font-size:var(--text-sm);font-weight:700;color:var(--color-navy);display:block;margin-bottom:2px}
+.premium-banner-text span{font-size:var(--text-xs);color:var(--color-text-muted)}
+
+/* Stripe modal */
+.stripe-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:400;display:none;align-items:center;justify-content:center;padding:var(--space-4)}
+.stripe-modal-backdrop.open{display:flex}
+.stripe-modal{background:#fff;border-radius:12px;padding:32px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:fadeUp .2s ease;position:relative;color:#111}
+.stripe-header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.stripe-logo{font-size:22px;font-weight:800;color:#635BFF;letter-spacing:-.03em}
+.stripe-secure{font-size:11px;color:#6B7280;background:#F3F4F6;padding:3px 8px;border-radius:4px;display:flex;align-items:center;gap:4px;margin-left:auto}
+.stripe-product{background:#F9FAFB;border-radius:8px;padding:16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.stripe-product-name{font-size:14px;font-weight:600;color:#111827}
+.stripe-product-desc{font-size:12px;color:#6B7280;margin-top:2px}
+.stripe-product-price{font-size:22px;font-weight:800;color:#111827}
+.stripe-form-group{margin-bottom:16px}
+.stripe-label{font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;display:block;letter-spacing:.02em;text-transform:uppercase}
+.stripe-input{width:100%;height:42px;padding:0 12px;border:1.5px solid #D1D5DB;border-radius:6px;font-size:14px;color:#111827;outline:none;transition:border-color .15s;background:#fff}
+.stripe-input:focus{border-color:#635BFF;box-shadow:0 0 0 3px rgba(99,91,255,.12)}
+.stripe-card-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stripe-submit{width:100%;height:46px;background:#635BFF;color:white;border:none;border-radius:6px;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s;margin-top:4px}
+.stripe-submit:hover{background:#4F46E5}
+.stripe-submit:disabled{background:#9CA3AF;cursor:not-allowed}
+.stripe-test-info{text-align:center;font-size:11px;color:#9CA3AF;margin-top:12px}
+.stripe-test-info .test-badge{background:#FEF3C7;color:#D97706;font-weight:700;padding:2px 6px;border-radius:4px;margin-right:4px}
+.stripe-close{position:absolute;top:12px;right:14px;background:none;border:none;cursor:pointer;color:#9CA3AF;font-size:22px;line-height:1;padding:4px}
+
+/* Mobile bottom sheet for modals */
+@media(max-width:520px){
+  .modal-backdrop{align-items:flex-end;padding:0}
+  .modal{border-radius:var(--radius-2xl) var(--radius-2xl) 0 0;max-width:100%;animation:slideUp .3s cubic-bezier(.16,1,.3,1);padding-bottom:calc(var(--space-8) + env(safe-area-inset-bottom,0px))}
+  .auth-modal-backdrop{align-items:flex-end;padding:0}
+  .auth-modal{border-radius:var(--radius-2xl) var(--radius-2xl) 0 0;max-width:100%;animation:slideUp .3s cubic-bezier(.16,1,.3,1);padding-bottom:calc(var(--space-8) + env(safe-area-inset-bottom,0px))}
+  .stripe-modal-backdrop{align-items:flex-end;padding:0}
+  .stripe-modal{border-radius:16px 16px 0 0;max-width:100%;padding-bottom:calc(32px + env(safe-area-inset-bottom,0px))}
+  .sync-badge{display:none !important}
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+/* Small mobile topbar */
+@media(max-width:400px){
+  .lang-toggle{padding:var(--space-1) var(--space-2) !important;font-size:10px !important}
+  #auth-login-btn span{display:none}
+}
+
+  </style>
+</head>
+<body>
+
+<div class="app-wrapper">
+  <!-- TOPBAR -->
+    <header class="topbar">
+    <div class="topbar-inner">
+      <a href="#" class="logo" aria-label="LeasEval">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true" style="flex-shrink:0">
+          <rect width="32" height="32" rx="8" fill="#1A73E8"/>
+          <path d="M8 22L14 10L20 17L24 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="24" cy="12" r="2.5" fill="white"/>
+          <path d="M8 25H24" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="logo-text">Leas<span>Eval</span></span>
+      </a>
+      <div class="topbar-actions">
+        <span class="sync-badge" id="sync-badge" style="display:none" aria-live="polite"></span>
+        <div style="display:flex;gap:4px">
+          <button class="lang-toggle active" id="btn-fr" onclick="setLang('fr')">FR</button>
+          <button class="lang-toggle" id="btn-en" onclick="setLang('en')">EN</button>
+        </div>
+        <button class="theme-btn" data-theme-toggle aria-label="Basculer thème">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <div class="auth-topbar">
+          <button class="btn btn-secondary btn-sm" id="auth-login-btn" onclick="openAuthModal('login')" style="gap:var(--space-1)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Connexion</span>
+          </button>
+          <div class="user-avatar" id="auth-avatar" onclick="toggleUserMenu()" style="display:none" role="button" tabindex="0" aria-label="Mon compte" onkeydown="if(event.key==='Enter')toggleUserMenu()"></div>
+          <div class="user-menu" id="user-menu" role="menu"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <!-- PREMIUM BANNER (logged in, not premium) -->
+    <div class="premium-banner" id="premium-banner" style="display:none">
+      <div style="font-size:26px;flex-shrink:0">⭐</div>
+      <div class="premium-banner-text">
+        <strong data-i18n="modal_title">LeasEval Premium</strong>
+        <span data-i18n="modal_sub">Exports PDF/Excel · comparaison illimitée · accès permanent</span>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openPremiumModal()">4,99 €</button>
+    </div>
+    <div class="page-header">
+      <h1 data-i18n="app_title">Comparer vos propositions LOA / LLD</h1>
+      <p data-i18n="app_subtitle">Évaluez en un coup d'œil si votre offre de leasing est vraiment intéressante.</p>
+    </div>
+
+    <div class="tabs" style="margin-bottom:var(--space-6)" role="tablist">
+      <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchTab(&#39;simulator&#39;)" id="tab-simulator" data-i18n="tab_new">Nouvelle simulation</button>
+      <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(&#39;history&#39;)" id="tab-history" data-i18n="tab_history">Historique</button>
+      <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(&#39;compare&#39;)" id="tab-compare" data-i18n="tab_compare">Comparaison</button>
+    </div>
+
+    <!-- SIMULATOR TAB -->
+    <div class="tab-panel active" id="panel-simulator">
+      <div class="sim-layout" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6);align-items:start">
+
+        <!-- FORM -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="car" aria-hidden="true" class="lucide lucide-car"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg></div>
+            <div>
+              <h2 data-i18n="form_vehicle">Véhicule &amp; proposition</h2>
+              <p data-i18n="form_vehicle_sub">Informations de base</p>
+            </div>
+          </div>
+          <form id="sim-form" novalidate="">
+            <div style="display:grid;grid-template-columns:1fr auto;gap:var(--space-4);margin-bottom:var(--space-4)">
+              <div>
+                <div class="form-grid" style="margin-bottom:var(--space-4)">
+                  <div class="form-group">
+                    <label class="form-label" for="contract-type" data-i18n="label_type">Type de contrat</label>
+                    <select class="form-input" id="contract-type" onchange="toggleLOA()">
+                      <option value="LOA">LOA — Location avec Option d'Achat</option>
+                      <option value="LLD">LLD — Location Longue Durée</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="sim-date" data-i18n="label_date">Date de la proposition</label>
+                    <input type="date" class="form-input" id="sim-date">
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:var(--space-3)">
+                  <label class="form-label" for="vehicle-name" data-i18n="label_vehicle">Marque et modèle</label>
+                  <input type="text" class="form-input" id="vehicle-name" placeholder="ex : Peugeot 308 GT 1.2 PureTech 130" autocomplete="off" oninput="onVehicleNameInput()">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="sim-title">Titre simulation</label>
+                  <input type="text" class="form-input" id="sim-title" placeholder="Nom affiché dans l&#39;historique" autocomplete="off" oninput="onSimTitleInput()">
+                  <span class="form-hint" id="sim-title-hint" style="color: var(--color-primary); font-size: 10px; display: none;">Copié depuis Marque / modèle</span>
+                </div>
+              </div>
+              <div id="vehicle-img-panel" style="width:160px;flex-shrink:0;display:flex;flex-direction:column;gap:var(--space-2)">
+                <div id="vehicle-img-wrap" style="width:160px;height:110px;border-radius:var(--radius-lg);border:1.5px solid var(--color-border);background:var(--color-surface-2);overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative">
+                  <div id="vehicle-img-placeholder" style="text-align: center; color: var(--color-text-faint); display: none;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto var(--space-1)"><path d="M19 17H5a2 2 0 0 1-2-2V9l3-6h12l3 6v6a2 2 0 0 1-2 2z"></path><circle cx="7.5" cy="17" r="1.5"></circle><circle cx="16.5" cy="17" r="1.5"></circle></svg>
+                    <div style="font-size:10px">Aperçu</div>
+                  </div>
+                  <img id="vehicle-img" src="./leaseval_files/Renault_Twingo_E-Tech_IMG_5910.jpg" alt="" style="display: block; width: 100%; height: 100%; object-fit: cover;" onerror="imgError()">
+                  <div id="vehicle-img-loading" style="display: none; position: absolute; inset: 0px; background: var(--color-surface-2); align-items: center; justify-content: center;">
+                    <div style="width:20px;height:20px;border:2px solid var(--color-border);border-top-color:var(--color-primary);border-radius:50%;animation:spin .8s linear infinite"></div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:var(--space-1)">
+                  <input type="url" id="vehicle-img-url" class="form-input" style="font-size:10px;height:32px;padding:0 var(--space-2);flex:1;min-width:0" placeholder="URL image…" oninput="setImgFromUrl(this.value)">
+                  <button type="button" class="btn btn-ghost" style="height:32px;padding:0 var(--space-2);font-size:11px" onclick="searchVehicleImage()" title="Chercher auto"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="search" aria-hidden="true" style="width:13px;height:13px" class="lucide lucide-search"><path d="m21 21-4.34-4.34"></path><circle cx="11" cy="11" r="8"></circle></svg></button>
+                </div>
+              </div>
+            </div>
+            <hr class="divider">
+            <div class="section-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="euro" aria-hidden="true" style="width:16px;height:16px" class="lucide lucide-euro"><path d="M4 10h12"></path><path d="M4 14h9"></path><path d="M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"></path></svg>
+              <span data-i18n="section_finance">Paramètres financiers</span>
+              <div class="section-title-line"></div>
+            </div>
+            <div class="form-grid three" style="margin-bottom:var(--space-4)">
+              <div class="form-group">
+                <label class="form-label" for="vnr" data-i18n="label_vnr">Valeur neuve remisée</label>
+                <div class="form-input-prefix"><span class="prefix">€</span>
+                  <input type="number" class="form-input" id="vnr" min="0" step="100" placeholder="32000" oninput="calculate()">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="l1" data-i18n="label_l1">1er loyer</label>
+                <div class="form-input-prefix"><span class="prefix">€</span>
+                  <input type="number" class="form-input" id="l1" min="0" step="50" placeholder="3000" oninput="calculate()">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="km" data-i18n="label_km">Km / an</label>
+                <input type="number" class="form-input" id="km" min="5000" step="1000" placeholder="15000" oninput="calculate()">
+              </div>
+            </div>
+            <div class="form-grid" style="margin-bottom:var(--space-4)">
+              <div class="form-group">
+                <label class="form-label" for="n-months" data-i18n="label_n">Nbre de loyers mensuels</label>
+                <input type="number" class="form-input" id="n-months" min="12" max="72" step="1" placeholder="48" oninput="calculate()">
+                <span class="form-hint" data-i18n="hint_n">Hors 1er loyer</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="lm" data-i18n="label_lm">Loyer mensuel</label>
+                <div class="form-input-prefix"><span class="prefix">€</span>
+                  <input type="number" class="form-input" id="lm" min="0" step="10" placeholder="350" oninput="calculate()">
+                </div>
+              </div>
+            </div>
+            <div class="form-group loa-only" id="oa-group" style="margin-bottom:var(--space-4)">
+              <label class="form-label" for="oa" data-i18n="label_oa">Option d'achat</label>
+              <div class="form-input-prefix"><span class="prefix">€</span>
+                <input type="number" class="form-input" id="oa" min="0" step="100" placeholder="12000" oninput="calculate()">
+              </div>
+              <span class="form-hint" data-i18n="hint_oa">Prix de rachat en fin de contrat</span>
+            </div>
+            <hr class="divider">
+            <div class="section-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="shield-check" aria-hidden="true" style="width:16px;height:16px" class="lucide lucide-shield-check"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg>
+              <span data-i18n="section_services">Services inclus dans le loyer</span>
+              <div class="section-title-line"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2);margin-bottom:var(--space-5)">
+              <div class="service-toggle on" id="svc-s1" onclick="toggleService(&#39;s1&#39;)" role="checkbox" aria-checked="true" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;)toggleService(&#39;s1&#39;)">
+                <div class="service-info"><div class="service-icon">🔧</div><span class="service-name" data-i18n="svc_s1">Entretien</span></div>
+                <div class="toggle-switch"></div>
+              </div>
+              <div class="service-toggle on" id="svc-s2" onclick="toggleService(&#39;s2&#39;)" role="checkbox" aria-checked="true" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;)toggleService(&#39;s2&#39;)">
+                <div class="service-info"><div class="service-icon">⭐</div><span class="service-name" data-i18n="svc_s2">Extension garantie</span></div>
+                <div class="toggle-switch"></div>
+              </div>
+              <div class="service-toggle on" id="svc-s3" onclick="toggleService(&#39;s3&#39;)" role="checkbox" aria-checked="true" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;)toggleService(&#39;s3&#39;)">
+                <div class="service-info"><div class="service-icon">💰</div><span class="service-name" data-i18n="svc_s3">Perte financière</span></div>
+                <div class="toggle-switch"></div>
+              </div>
+              <div class="service-toggle" id="svc-s4" onclick="toggleService(&#39;s4&#39;)" role="checkbox" aria-checked="false" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;)toggleService(&#39;s4&#39;)">
+                <div class="service-info"><div class="service-icon">🛞</div><span class="service-name" data-i18n="svc_s4">Pneumatiques</span></div>
+                <div class="toggle-switch"></div>
+              </div>
+              <div class="service-toggle" id="svc-s5" onclick="toggleService(&#39;s5&#39;)" role="checkbox" aria-checked="false" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;)toggleService(&#39;s5&#39;)">
+                <div class="service-info"><div class="service-icon">🚗</div><span class="service-name" data-i18n="svc_s5">Véhicule rempl.</span></div>
+                <div class="toggle-switch"></div>
+              </div>
+            </div>
+            <div class="btn-group">
+              <button type="button" class="btn btn-secondary" onclick="resetForm()" style="flex:1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="rotate-ccw" aria-hidden="true" style="width:16px;height:16px" class="lucide lucide-rotate-ccw"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                <span>Réinitialiser</span>
+              </button>
+              <button type="button" class="btn btn-primary" onclick="saveSimulation()" style="flex:2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="save" aria-hidden="true" style="width:16px;height:16px" class="lucide lucide-save"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"></path><path d="M7 3v4a1 1 0 0 0 1 1h7"></path></svg>
+                <span data-i18n="btn_save">Sauvegarder</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- RESULTS -->
+        <div>
+          <div id="results-placeholder" class="card" style="display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 420px;">
+            <div style="text-align:center">
+              <svg width="56" height="56" viewBox="0 0 56 56" fill="none" style="margin:0 auto var(--space-4)" aria-hidden="true">
+                <rect width="56" height="56" rx="16" fill="var(--color-surface-2)"></rect>
+                <path d="M18 38L24 26L32 33L38 22" stroke="var(--color-text-faint)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <circle cx="38" cy="22" r="3" fill="var(--color-text-faint)"></circle>
+              </svg>
+              <p style="font-size:var(--text-sm);font-weight:500;color:var(--color-text-muted)" data-i18n="results_waiting">Renseignez les paramètres pour voir l'analyse</p>
+              <p style="font-size:var(--text-xs);color:var(--color-text-faint);margin-top:var(--space-2)" data-i18n="results_realtime">Les résultats se mettent à jour en temps réel</p>
+            </div>
+          </div>
+
+          <div class="results-section visible" id="results-panel">
+            <!-- Cost card -->
+            <div class="card" style="margin-bottom:var(--space-4)">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4)">
+                <span class="section-title" style="margin-bottom:0" data-i18n="result_cost">Coût de la location</span>
+                <span id="res-type-badge" class="tag tag-loa">LOA</span>
+              </div>
+
+              <!-- Résumé Total loyers / % / VNR -->
+              <div class="cost-summary-row" style="align-items:center">
+                <div class="cost-summary-item">
+                  <div class="cost-summary-label">Total loyers</div>
+                  <div class="cost-summary-value" id="res-tl" style="font-size:var(--text-2xl)">7 040 €</div>
+                </div>
+                <div class="cost-summary-sep">÷</div>
+                <div class="cost-summary-item">
+                  <div class="cost-summary-label">Valeur remisée</div>
+                  <div class="cost-summary-value" id="res-vnr-display" style="font-size:var(--text-2xl)">20 000 €</div>
+                </div>
+                <div class="cost-summary-sep">=</div>
+                <div class="cost-summary-item">
+                  <div class="cost-summary-label" style="color:var(--color-primary)">% payé / VNR</div>
+                  <div class="cost-summary-value" id="res-pct-tl" style="font-size: var(--text-2xl); color: var(--color-success);">35,2 %</div>
+                </div>
+              </div>
+
+              <!-- Slider -->
+              <div class="slider-section">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-1)">
+                  <span style="font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.04em">% Total loyers vs VNR</span>
+                  <button class="slider-reset-btn" onclick="resetSlider()" id="slider-reset-btn" style="display:none">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="rotate-ccw" aria-hidden="true" style="width:10px;height:10px" class="lucide lucide-rotate-ccw"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg> Rétablir
+                  </button>
+                </div>
+                <div class="slider-track-wrap" id="slider-wrap">
+                  <div class="slider-track">
+                    <div class="slider-seg-green" id="seg-green" style="width: 66%;"></div>
+                    <div class="slider-seg-orange" id="seg-orange" style="left: 66%; width: 10%;"></div>
+                    <div class="slider-seg-red" id="seg-red" style="left: 76%; right: 0px; width: 24%;"></div>
+                  </div>
+                  <!-- Seuil S1 bar -->
+                  <div id="mk-s1" style="position: absolute; top: 50%; transform: translate(-50%, -50%); width: 3px; height: 22px; background: white; border-radius: 2px; box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 0px 1px; z-index: 10; left: 66%; transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+                    <div class="slider-marker-val" id="mk-s1-val" style="color:var(--color-success);font-size:9px">53,0 %</div>
+                  </div>
+                  <!-- Seuil S2 bar -->
+                  <div id="mk-s2" style="position: absolute; top: 50%; transform: translate(-50%, -50%); width: 3px; height: 22px; background: white; border-radius: 2px; box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 0px 1px; z-index: 10; left: 76%; transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+                    <div class="slider-marker-val" id="mk-s2-val" style="color:var(--color-warning);font-size:9px">58,0 %</div>
+                  </div>
+                  <!-- Résultat marker (draggable) -->
+                  <div class="slider-result-marker" id="mk-result" style="left: 30.4%; background: var(--color-success);">
+                    <div id="mk-result-tag" class="slider-tag" style="position: absolute; top: -30px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: var(--radius-full); background: var(--color-success); pointer-events: none;">Bonne affaire</div>
+                    <div class="slider-result-marker-inner"></div>
+                    <div id="mk-result-label" style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;white-space:nowrap;color:var(--color-text)">35,2 %</div>
+                  </div>
+                </div>
+                <div class="slider-legend" style="justify-content:space-between"><span id="legend-min">20,0 %</span><span id="legend-max">70,0 %</span></div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:var(--space-3);margin-top:var(--space-3)">
+                  <strong style="font-size:var(--text-xs);color:var(--color-success)">Bonne affaire</strong>
+                  <span style="color:var(--color-text-faint);font-size:var(--text-xs)">|</span>
+                  <strong style="font-size:var(--text-xs);color:var(--color-warning)">Pourquoi pas</strong>
+                  <span style="color:var(--color-text-faint);font-size:var(--text-xs)">|</span>
+                  <strong style="font-size:var(--text-xs);color:var(--color-error)">Trop cher</strong>
+                  <div id="res-tl-badge" style="display:none" class="score-badge good">✅ Bonne affaire</div>
+                  <span id="thresh-s1-lbl" style="display:none">53,0 %</span>
+                  <span id="thresh-s1-lbl2" style="display:none">53,0 %</span>
+                  <span id="thresh-s2-lbl" style="display:none">58,0 %</span>
+                  <span id="thresh-s2-lbl2" style="display:none">58,0 %</span>
+                </div>
+              </div>
+
+              <!-- Équation Loyer réel -->
+              <div class="equation-row" style="margin-top:var(--space-4);justify-content:center">
+                <div class="eq-item">
+                  <div class="eq-label">Valeur remisée</div>
+                  <div class="eq-value" id="eq-vnr">20 000 €</div>
+                </div>
+                <div class="eq-op">÷</div>
+                <div class="eq-item">
+                  <div class="eq-label" data-i18n="kpi_lr">Loyer réel / mois</div>
+                  <div class="eq-value" id="res-lr">196 €/mois</div>
+                </div>
+                <div class="eq-op">→</div>
+                <div class="eq-item">
+                  <div class="eq-label" data-i18n="kpi_nban">Années avant dép. VNR</div>
+                  <div class="eq-value" id="res-nban" style="color:var(--color-primary)">8 ans 6 mois</div>
+                </div>
+                <!-- HIDDEN: Loyer réel / VNR — calculé mais non affiché, à réactiver si besoin -->
+                <div id="kpi-sep-pct-lr" class="eq-op" style="display:none;font-size:var(--text-xs);align-self:flex-end;padding-bottom:2px">|</div>
+                <div class="eq-item" id="kpi-pct-lr-wrap" style="display:none">
+                  <div class="eq-label" data-i18n="kpi_pct_lr">Loyer réel / VNR</div>
+                  <div class="eq-value" id="res-pct-lr" style="font-size:var(--text-sm)">0,978 %</div>
+                </div>
+              </div>
+              <!-- Hidden pct-tl-sub (kept for JS compat) -->
+              <div id="res-pct-tl-sub" style="display:none"></div>
+              <div id="res-lr-sub" style="display:none"></div>
+            </div>
+            <!-- LOA buyout card -->
+            <div class="card loa-only" id="res-loa-section" style="margin-bottom:var(--space-4)">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4)">
+                <div class="section-title" style="margin-bottom:0">Option d'achat (LOA)</div>
+                <span class="tag tag-loa">LOA</span>
+              </div>
+
+              <!-- Ligne 1 : équation OA + TL = CF = %VNR -->
+              <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;background:var(--color-surface-2);border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-5)">
+                <div style="text-align:center;flex:1;min-width:80px">
+                  <div class="cost-summary-label">Option d'achat</div>
+                  <div id="res-oa" class="cost-summary-value" style="font-size:var(--text-2xl)">12 000 €</div>
+                </div>
+                <div style="font-size:var(--text-lg);color:var(--color-text-muted);font-weight:300;flex-shrink:0">+</div>
+                <div style="text-align:center;flex:1;min-width:80px">
+                  <div class="cost-summary-label">Total loyers</div>
+                  <div id="res-tl-loa" class="cost-summary-value" style="font-size:var(--text-2xl);color:var(--color-text-muted)">7 040 €</div>
+                </div>
+                <div style="font-size:var(--text-lg);color:var(--color-text-muted);font-weight:300;flex-shrink:0">=</div>
+                <div style="text-align:center;flex:1;min-width:80px">
+                  <div class="cost-summary-label">Coût si rachat</div>
+                  <div id="res-cf" class="cost-summary-value" style="font-size:var(--text-2xl)">19 040 €</div>
+                  <div id="res-cf-formula" style="font-size:10px;color:var(--color-text-faint)">7 040 € + 12 000 €</div>
+                </div>
+                <div style="font-size:var(--text-lg);color:var(--color-text-muted);font-weight:300;flex-shrink:0">=</div>
+                <div style="text-align:center;flex:1;min-width:80px">
+                  <div class="cost-summary-label">% VNR</div>
+                  <div id="res-pct-cf" class="cost-summary-value" style="font-size: var(--text-2xl); color: var(--color-success);">95,2 %</div>
+                  <div id="res-cf-badge" style="display:none" class="score-badge good">✅ Rachat intéressant</div>
+                </div>
+              </div>
+
+              <!-- Ligne 2 : slider rachat -->
+              <div id="loa-slider-section" class="slider-section">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-3)">
+                  <span style="font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.04em">% COÛT RACHAT VS VNR</span>
+                  <button class="btn btn-ghost btn-sm" id="loa-slider-reset-btn" onclick="resetLoaSlider()" style="display:none;font-size:var(--text-xs)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="rotate-ccw" aria-hidden="true" style="width:12px;height:12px" class="lucide lucide-rotate-ccw"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg> Rétablir
+                  </button>
+                </div>
+                <div id="loa-slider-wrap" style="position:relative;height:32px;margin-top:var(--space-8);margin-bottom:var(--space-5)">
+                  <div style="position:absolute;top:50%;transform:translateY(-50%);width:100%;height:10px;border-radius:var(--radius-full);overflow:visible;display:flex;background:var(--color-error)">
+                    <div id="loa-seg-green" style="background: var(--color-success); height: 100%; width: 54%; border-radius: var(--radius-full) 0 0 var(--radius-full);"></div>
+                    <div id="loa-seg-orange" style="background: var(--color-warning); position: absolute; height: 100%; left: 54%; width: 8%;"></div>
+                    <div id="loa-seg-red" style="background: var(--color-error); position: absolute; height: 100%; left: 62%; width: 38%; border-radius: 0 var(--radius-full) var(--radius-full) 0;"></div>
+                  </div>
+                  <div id="loa-mk-s3" style="position: absolute; top: 50%; transform: translate(-50%, -50%); width: 3px; height: 22px; background: white; border-radius: 2px; box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 0px 1px; z-index: 10; left: 54%; transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+                    <div id="loa-mk-s3-val" style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:600;color:var(--color-success);white-space:nowrap">107,0 %</div>
+                  </div>
+                  <div id="loa-mk-s4" style="position: absolute; top: 50%; transform: translate(-50%, -50%); width: 3px; height: 22px; background: white; border-radius: 2px; box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 0px 1px; z-index: 10; left: 62%; transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+                    <div id="loa-mk-s4-val" style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:600;color:var(--color-warning);white-space:nowrap">111,0 %</div>
+                  </div>
+                  <div class="slider-result-marker" id="loa-mk-result" style="left: 30.4%; background: var(--color-success);">
+                    <div id="loa-mk-result-tag" class="slider-tag" style="position: absolute; top: -30px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: var(--radius-full); background: var(--color-success); pointer-events: none;">Idéal</div>
+                    <div class="slider-result-marker-inner"></div>
+                    <div id="loa-mk-result-label" style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;white-space:nowrap;color:var(--color-text)">95,2 %</div>
+                  </div>
+                </div>
+                <div class="slider-legend" style="justify-content:space-between"><span id="loa-legend-min">80,0 %</span><span id="loa-legend-max">130,0 %</span></div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:var(--space-3);margin-top:var(--space-3)">
+                  <strong style="font-size:var(--text-xs);color:var(--color-success)">Idéal</strong>
+                  <span style="color:var(--color-text-faint);font-size:var(--text-xs)">|</span>
+                  <strong style="font-size:var(--text-xs);color:var(--color-warning)">Acceptable</strong>
+                  <span style="color:var(--color-text-faint);font-size:var(--text-xs)">|</span>
+                  <strong style="font-size:var(--text-xs);color:var(--color-error)">Déconseillé</strong>
+                </div>
+              </div>
+
+              <!-- LOA hint (outside slider section) -->
+              <div id="loa-hint-container"></div>
+
+              <!-- Hidden compat elements -->
+              <div id="res-pct-cf-sub" style="display:none"></div>
+              <div style="display:none"><div class="progress-fill" id="res-cf-bar" style="width:0%"></div></div>
+              <div id="res-s3" style="display:none">107,0 %</div>
+              <div id="res-s4" style="display:none">111,0 %</div>
+            </div>
+            <!-- Export (premium) -->
+            <div class="card premium-lock" id="res-export-section">
+              <div id="export-content">
+                <div class="" id="export-blurred"><div class="section-title">Exports &amp; comparaison</div><div style="display:flex;gap:var(--space-3);flex-wrap:wrap"><button class="btn btn-secondary" onclick="exportCurrentPDF()">📄 Export PDF</button><button class="btn btn-secondary" onclick="exportAllExcel()">📊 Export Excel</button><button class="btn btn-primary" onclick="switchTab(&#39;compare&#39;)">⚖️ Comparer</button></div></div>
+                <div class="premium-overlay" id="premium-overlay" style="display: none;">
+                  <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--space-4);box-shadow:var(--shadow-lg);text-align:center;max-width:280px">
+                    <div style="font-size:24px;margin-bottom:var(--space-2)">🔒</div>
+                    <p style="font-size:var(--text-sm);font-weight:600;color:var(--color-text);margin-bottom:var(--space-1)" data-i18n="premium_title">Fonctions Premium</p>
+                    <p style="font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:var(--space-3)" data-i18n="premium_desc">Export PDF, Excel et comparaison côte-à-côte</p>
+                    <button class="btn btn-primary btn-sm w-full" onclick="openPremiumModal()" data-i18n="premium_unlock">Débloquer — 4,99 €</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div class="tab-panel" id="panel-history">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-5)">
+          <div>
+            <h2 style="font-family:var(--font-display);font-size:var(--text-base);font-weight:700;color:var(--color-navy)" data-i18n="history_title">Mes simulations</h2>
+            <p style="font-size:var(--text-xs);color:var(--color-text-muted)" id="history-count-label">3 / ∞</p>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-secondary btn-sm" onclick="exportAllExcel()" id="btn-export-all-excel" style="display: inline-flex;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="file-spreadsheet" aria-hidden="true" style="width:14px;height:14px" class="lucide lucide-file-spreadsheet"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M8 13h2"></path><path d="M14 13h2"></path><path d="M8 17h2"></path><path d="M14 17h2"></path></svg> Excel
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="exportHistoryJSON()" title="Sauvegarder l&#39;historique (JSON)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="download" aria-hidden="true" style="width:14px;height:14px" class="lucide lucide-download"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg> Backup
+            </button>
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer" title="Restaurer un historique (JSON)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="upload" aria-hidden="true" style="width:14px;height:14px" class="lucide lucide-upload"><path d="M12 3v12"></path><path d="m17 8-5-5-5 5"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg> Restore
+              <input type="file" accept=".json" onchange="importHistoryJSON(event)" style="display:none">
+            </label>
+            <button class="btn btn-ghost btn-sm" onclick="clearHistory()" data-i18n="btn_clear">Vider</button>
+          </div>
+        </div>
+        <div id="history-container"><div class="history-list"><div class="history-item" onclick="loadSim(1775672672968)" role="button" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;)loadSim(1775672672968)">
+      <img src="./leaseval_files/Renault_Twingo_E-Tech_IMG_5910.jpg" alt="" style="width:56px;height:44px;object-fit:cover;border-radius:var(--radius-md);flex-shrink:0">
+      <div class="history-info">
+        <div class="history-title">renault twingo e-tech 4 ans</div>
+        <div class="history-meta"><span class="tag tag-loa">LOA</span> · 2026-04-08 · 48 mois · 5 000 km/an</div>
+      </div>
+      <div class="history-kpis">
+        <div class="history-kpi"><div class="history-kpi-val">13 664 €</div><div class="history-kpi-label">Total</div></div>
+        <div class="history-kpi"><div class="history-kpi-val">285 €/m</div><div class="history-kpi-label">Loyer réel</div></div>
+      </div>
+      <div class="history-actions">
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();renameSim(1775672672968)" title="Renommer"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="pencil" aria-hidden="true" style="width:13px;height:13px" class="lucide lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></button>
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();exportPDF(1775672672968)" title="PDF">📄</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();delSim(1775672672968)" title="Supprimer"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trash-2" aria-hidden="true" style="width:13px;height:13px" class="lucide lucide-trash-2"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+      </div>
+    </div><div class="history-item" onclick="loadSim(1775647293359)" role="button" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;)loadSim(1775647293359)">
+      <img src="./leaseval_files/Renault_Twingo_E-Tech_IMG_5910.jpg" alt="" style="width:56px;height:44px;object-fit:cover;border-radius:var(--radius-md);flex-shrink:0">
+      <div class="history-info">
+        <div class="history-title">renault twingo e-tech 3 ans</div>
+        <div class="history-meta"><span class="tag tag-loa">LOA</span> · 2026-04-08 · 36 mois · 5 000 km/an</div>
+      </div>
+      <div class="history-kpis">
+        <div class="history-kpi"><div class="history-kpi-val">7 040 €</div><div class="history-kpi-label">Total</div></div>
+        <div class="history-kpi"><div class="history-kpi-val">196 €/m</div><div class="history-kpi-label">Loyer réel</div></div>
+      </div>
+      <div class="history-actions">
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();renameSim(1775647293359)" title="Renommer"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="pencil" aria-hidden="true" style="width:13px;height:13px" class="lucide lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></button>
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();exportPDF(1775647293359)" title="PDF">📄</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();delSim(1775647293359)" title="Supprimer"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trash-2" aria-hidden="true" style="width:13px;height:13px" class="lucide lucide-trash-2"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+      </div>
+    </div><div class="history-item" onclick="loadSim(1775647265754)" role="button" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;)loadSim(1775647265754)">
+      <img src="./leaseval_files/Renault_Twingo_E-Tech_IMG_5910.jpg" alt="" style="width:56px;height:44px;object-fit:cover;border-radius:var(--radius-md);flex-shrink:0">
+      <div class="history-info">
+        <div class="history-title">renault twingo e-tech 5 ans</div>
+        <div class="history-meta"><span class="tag tag-loa">LOA</span> · 2026-04-08 · 60 mois · 5 000 km/an</div>
+      </div>
+      <div class="history-kpis">
+        <div class="history-kpi"><div class="history-kpi-val">13 400 €</div><div class="history-kpi-label">Total</div></div>
+        <div class="history-kpi"><div class="history-kpi-val">223 €/m</div><div class="history-kpi-label">Loyer réel</div></div>
+      </div>
+      <div class="history-actions">
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();renameSim(1775647265754)" title="Renommer"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="pencil" aria-hidden="true" style="width:13px;height:13px" class="lucide lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></button>
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();exportPDF(1775647265754)" title="PDF">📄</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();delSim(1775647265754)" title="Supprimer"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trash-2" aria-hidden="true" style="width:13px;height:13px" class="lucide lucide-trash-2"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+      </div>
+    </div></div></div>
+      </div>
+    </div>
+
+    <!-- COMPARE TAB -->
+    <div class="tab-panel" id="panel-compare">
+      <div class="card premium-lock" id="compare-premium-wrap" style="display: none;">
+        <div class="premium-blur">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-bottom:var(--space-4)">
+            <div style="background:var(--color-surface-2);border-radius:var(--radius-xl);height:120px"></div>
+            <div style="background:var(--color-surface-2);border-radius:var(--radius-xl);height:120px"></div>
+          </div>
+          <div style="height:200px;background:var(--color-surface-2);border-radius:var(--radius-xl)"></div>
+        </div>
+        <div class="premium-overlay">
+          <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--space-6);box-shadow:var(--shadow-lg);text-align:center;max-width:300px">
+            <div style="font-size:32px;margin-bottom:var(--space-3)">⚖️</div>
+            <p style="font-size:var(--text-base);font-weight:700;color:var(--color-text);margin-bottom:var(--space-2)" data-i18n="compare_title">Comparaison côte-à-côte</p>
+            <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-4)" data-i18n="compare_desc">Comparez deux simulations en détail pour choisir la meilleure offre.</p>
+            <button class="btn btn-primary w-full" onclick="openPremiumModal()" data-i18n="premium_unlock">Débloquer — 4,99 €</button>
+          </div>
+        </div>
+      </div>
+      <div id="compare-content" style="display: block;"><div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:var(--space-3);margin-bottom:var(--space-5)"><div class="form-group"><label class="form-label" style="display:flex;align-items:center;gap:6px"><span style="width:20px;height:20px;border-radius:50%;background:var(--color-primary);color:white;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center">A</span> Simulation A</label><select class="form-input" id="cmp-a" onchange="updateCmp()"><option value="">— Aucune —</option><option value="1775672672968">renault twingo e-tech 4 ans (LOA · 68%)</option><option value="1775647293359">renault twingo e-tech 3 ans (LOA · 35%)</option><option value="1775647265754">renault twingo e-tech 5 ans (LOA · 67%)</option></select></div><div class="form-group"><label class="form-label" style="display:flex;align-items:center;gap:6px"><span style="width:20px;height:20px;border-radius:50%;background:var(--color-primary);color:white;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center">B</span> Simulation B</label><select class="form-input" id="cmp-b" onchange="updateCmp()"><option value="">— Aucune —</option><option value="1775672672968">renault twingo e-tech 4 ans (LOA · 68%)</option><option value="1775647293359">renault twingo e-tech 3 ans (LOA · 35%)</option><option value="1775647265754">renault twingo e-tech 5 ans (LOA · 67%)</option></select></div><div class="form-group"><label class="form-label" style="display:flex;align-items:center;gap:6px"><span style="width:20px;height:20px;border-radius:50%;background:var(--color-primary);color:white;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center">C</span> Simulation C</label><select class="form-input" id="cmp-c" onchange="updateCmp()"><option value="">— Aucune —</option><option value="1775672672968">renault twingo e-tech 4 ans (LOA · 68%)</option><option value="1775647293359">renault twingo e-tech 3 ans (LOA · 35%)</option><option value="1775647265754">renault twingo e-tech 5 ans (LOA · 67%)</option></select></div><div class="form-group"><label class="form-label" style="display:flex;align-items:center;gap:6px"><span style="width:20px;height:20px;border-radius:50%;background:var(--color-primary);color:white;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center">D</span> Simulation D</label><select class="form-input" id="cmp-d" onchange="updateCmp()"><option value="">— Aucune —</option><option value="1775672672968">renault twingo e-tech 4 ans (LOA · 68%)</option><option value="1775647293359">renault twingo e-tech 3 ans (LOA · 35%)</option><option value="1775647265754">renault twingo e-tech 5 ans (LOA · 67%)</option></select></div></div>
+    <div id="cmp-result" style="overflow-x:auto"><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:500px"><thead><tr style="border-bottom:2px solid var(--color-divider)">
+    <th style="padding:var(--space-3) var(--space-4);text-align:left;font-size:var(--text-xs);color:var(--color-text-faint);min-width:180px"></th>
+    <th style="padding:var(--space-3) var(--space-4);text-align:left;min-width:160px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+        <span style="width:20px;height:20px;border-radius:50%;background:var(--color-text-muted);color:white;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">A</span>
+        <span class="tag tag-loa">LOA</span>
+      </div>
+      <div style="font-size:var(--text-sm);font-weight:600;color:var(--color-text)">renault twingo e-tech 4 ans</div>
+      <div style="font-size:10px;color:var(--color-text-faint)">2026-04-08</div>
+    </th><th style="padding:var(--space-3) var(--space-4);text-align:left;min-width:160px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+        <span style="width:20px;height:20px;border-radius:50%;background:var(--color-text-muted);color:white;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">B</span>
+        <span class="tag tag-loa">LOA</span>
+      </div>
+      <div style="font-size:var(--text-sm);font-weight:600;color:var(--color-text)">renault twingo e-tech 3 ans</div>
+      <div style="font-size:10px;color:var(--color-text-faint)">2026-04-08</div>
+    </th>
+  </tr></thead><tbody><tr style="border-bottom:1px solid var(--color-divider);background:var(--color-surface-2)">
+    <td style="padding:var(--space-3) var(--space-4);font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.03em">Total loyers</td>
+    <td style="padding:var(--space-3) var(--space-4)"><span style="font-family:var(--font-display);font-weight:700">13 664 €</span></td><td style="padding:var(--space-3) var(--space-4)"><span style="font-family:var(--font-display);font-weight:700">7 040 €</span></td>
+  </tr><tr style="border-bottom:1px solid var(--color-divider);">
+    <td style="padding:var(--space-3) var(--space-4);font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.03em">% payé / VNR</td>
+    <td style="padding:var(--space-3) var(--space-4)"><div style="font-family:var(--font-display);font-weight:700;color:var(--color-warning)">68,3 %</div><div style="margin-top:4px"><span class="score-badge ok">🟡 Pourquoi pas</span></div></td><td style="padding:var(--space-3) var(--space-4)"><div style="font-family:var(--font-display);font-weight:700;color:var(--color-success)">35,2 %</div><div style="margin-top:4px"><span class="score-badge good">✅ Bonne affaire</span></div></td>
+  </tr><tr style="border-bottom:1px solid var(--color-divider);background:var(--color-surface-2)">
+    <td style="padding:var(--space-3) var(--space-4);font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.03em">Loyer réel / mois</td>
+    <td style="padding:var(--space-3) var(--space-4)"><span style="font-family:var(--font-display);font-weight:700">285 €/mois</span></td><td style="padding:var(--space-3) var(--space-4)"><span style="font-family:var(--font-display);font-weight:700">196 €/mois</span><span style="color:var(--color-success);margin-left:4px;font-size:13px">✓</span></td>
+  </tr><tr style="border-bottom:1px solid var(--color-divider);">
+    <td style="padding:var(--space-3) var(--space-4);font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.03em">% payé si rachat / VNR</td>
+    <td style="padding:var(--space-3) var(--space-4)"><div style="font-family:var(--font-display);font-weight:700;color:var(--color-warning)">113,3 %</div><div style="margin-top:4px"><span class="score-badge ok">🟡 Rachat acceptable</span></div></td><td style="padding:var(--space-3) var(--space-4)"><div style="font-family:var(--font-display);font-weight:700;color:var(--color-success)">95,2 %</div><div style="margin-top:4px"><span class="score-badge good">✅ Rachat intéressant</span></div></td>
+  </tr><tr style="border-bottom:1px solid var(--color-divider);background:var(--color-surface-2)">
+    <td style="padding:var(--space-3) var(--space-4);font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.03em">Années avant dép. VNR</td>
+    <td style="padding:var(--space-3) var(--space-4)"><span style="font-family:var(--font-display);font-weight:700">5 ans 10 mois</span></td><td style="padding:var(--space-3) var(--space-4)"><span style="font-family:var(--font-display);font-weight:700">8 ans 6 mois</span><span style="color:var(--color-success);margin-left:4px;font-size:13px">✓</span></td>
+  </tr></tbody></table></div></div></div></div>
+    </div>
+  </main>
+
+  <footer style="border-top:1px solid var(--color-divider);padding:var(--space-4) var(--space-6);text-align:center">
+    <p style="font-size:var(--text-xs);color:var(--color-text-faint)">© 2026 LeasEval &nbsp;·&nbsp; <span data-i18n="footer_free">Mode gratuit — 3 simulations max</span> &nbsp;·&nbsp; <button onclick="openPremiumModal()" style="font-size:var(--text-xs);color:var(--color-primary);font-weight:600;text-decoration:underline" data-i18n="footer_unlock">Débloquer Premium</button></p>
+  </footer>
+</div>
+
+<!-- PREMIUM MODAL -->
+<div class="modal-backdrop" id="premium-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <h2 id="modal-title" data-i18n="modal_title">LeasEval Premium</h2>
+    <p data-i18n="modal_sub">Accès complet à toutes les fonctions, une seule fois.</p>
+    <div class="price-badge">
+      <span class="price-amount">4,99 €</span>
+      <span class="price-desc" data-i18n="modal_once">achat unique · accès permanent</span>
+    </div>
+    <ul class="modal-features">
+      <li><div class="modal-feature-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" style="width:12px;height:12px" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"></path></svg></div><span data-i18n="feat_compare">Comparaison côte-à-côte illimitée</span></li>
+      <li><div class="modal-feature-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" style="width:12px;height:12px" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"></path></svg></div><span data-i18n="feat_pdf">Export PDF de chaque simulation</span></li>
+      <li><div class="modal-feature-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" style="width:12px;height:12px" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"></path></svg></div><span data-i18n="feat_excel">Export Excel / CSV</span></li>
+      <li><div class="modal-feature-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" style="width:12px;height:12px" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"></path></svg></div><span data-i18n="feat_history">Historique illimité</span></li>
+      <li><div class="modal-feature-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" style="width:12px;height:12px" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"></path></svg></div><span data-i18n="feat_modes">Tous les futurs modes (négociation, partage…)</span></li>
+    </ul>
+    <div class="btn-group">
+      <button class="btn btn-primary w-full" onclick="activatePremium()" data-i18n="modal_cta">Débloquer maintenant</button>
+      <button class="btn btn-ghost" onclick="closePremiumModal()" data-i18n="modal_close">Plus tard</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container" aria-live="polite"></div>
+  <!-- AUTH MODAL -->
+  <div class="auth-modal-backdrop" id="auth-modal-backdrop" role="dialog" aria-modal="true" aria-label="Connexion">
+    <div class="auth-modal" id="auth-modal"></div>
+  </div>
+
+  <!-- STRIPE CHECKOUT MODAL (mock) -->
+  <div class="stripe-modal-backdrop" id="stripe-modal-backdrop" role="dialog" aria-modal="true" aria-label="Paiement">
+    <div class="stripe-modal">
+      <button class="stripe-close" onclick="closeStripeModal()" aria-label="Fermer">&#215;</button>
+      <div class="stripe-header">
+        <div class="stripe-logo">stripe</div>
+        <div class="stripe-secure">&#128274; S&#233;curis&#233;</div>
+      </div>
+      <div class="stripe-product">
+        <div>
+          <div class="stripe-product-name">LeasEval Premium</div>
+          <div class="stripe-product-desc">Acc&#232;s permanent &#183; paiement unique</div>
+        </div>
+        <div class="stripe-product-price">4,99 &#8364;</div>
+      </div>
+      <div class="stripe-form-group">
+        <label class="stripe-label" for="stripe-name">Titulaire de la carte</label>
+        <input class="stripe-input" id="stripe-name" type="text" placeholder="Jean Dupont" autocomplete="cc-name">
+      </div>
+      <div class="stripe-form-group">
+        <label class="stripe-label" for="stripe-card-num">Num&#233;ro de carte</label>
+        <input class="stripe-input" id="stripe-card-num" type="text" placeholder="4242 4242 4242 4242" maxlength="19" oninput="fmtCard(this)" autocomplete="cc-number">
+      </div>
+      <div class="stripe-card-row">
+        <div class="stripe-form-group">
+          <label class="stripe-label" for="stripe-expiry">Expiration</label>
+          <input class="stripe-input" id="stripe-expiry" type="text" placeholder="MM/AA" maxlength="5" oninput="fmtExpiry(this)" autocomplete="cc-exp">
+        </div>
+        <div class="stripe-form-group">
+          <label class="stripe-label" for="stripe-cvc">CVC</label>
+          <input class="stripe-input" id="stripe-cvc" type="text" placeholder="123" maxlength="4" autocomplete="cc-csc">
+        </div>
+      </div>
+      <button class="stripe-submit" id="stripe-pay-btn" onclick="submitStripe()">&#128274; Payer 4,99 &#8364;</button>
+      <div class="stripe-test-info">
+        <span class="test-badge">TEST</span> Carte : 4242 4242 4242 4242 &#183; 12/28 &#183; 123
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+<script>
+/* ============================================================
+   LEASEVAL — Application Core (v2 — Web Edition)
+   ============================================================ */
+
+// ---- STATE ----
+const state = { lang:'fr', premium:false, services:{s1:false,s2:false,s3:false,s4:false,s5:false}, history:[], maxFree:3 };
+
+// ---- i18n ----
+const i18n = {
+  fr:{
+    app_title:'Comparer vos propositions LOA / LLD',app_subtitle:'Évaluez en un coup d\'œil si votre offre de leasing est vraiment intéressante.',
+    tab_new:'Nouvelle simulation',tab_history:'Historique',tab_compare:'Comparaison',
+    form_vehicle:'Véhicule & proposition',form_vehicle_sub:'Informations de base',
+    label_type:'Type de contrat',label_date:'Date de la proposition',label_vehicle:'Marque et modèle',
+    label_vnr:'Valeur neuve remisée (VNR)',label_l1:'1er loyer',label_km:'Km / an',
+    label_n:'Nbre de loyers mensuels',label_lm:'Loyer mensuel',label_oa:'Option d\'achat',
+    hint_n:'Hors 1er loyer',hint_oa:'Prix de rachat en fin de contrat',
+    section_finance:'Paramètres financiers',section_services:'Services inclus dans le loyer',
+    svc_s1:'Entretien',svc_s2:'Extension garantie',svc_s3:'Perte financière',svc_s4:'Pneumatiques',svc_s5:'Véhicule remplacement',
+    btn_save:'Sauvegarder',btn_reset:'Réinitialiser',
+    result_cost:'Coût de la location',result_buyout:'Option de rachat (LOA)',result_export:'Exports & comparaison',
+    kpi_total:'Total loyers',kpi_pct_tl:'% payé / VNR',kpi_lr:'Loyer réel',
+    kpi_nban:'Années avant dépassement VNR',kpi_pct_lr:'Loyer réel / VNR',kpi_vnr:'Valeur remisée',
+    kpi_oa:'Option d\'achat (OA)',kpi_oa_sub:'Prix de rachat contractuel',kpi_cf:'Coût final si rachat (CF)',kpi_pct_cf:'% payé si rachat / VNR',
+    results_waiting:'Renseignez les paramètres pour voir l\'analyse',results_realtime:'Les résultats se mettent à jour en temps réel',
+    premium_title:'Fonctions Premium',premium_desc:'Export PDF, Excel et comparaison côte-à-côte',premium_unlock:'Débloquer — 4,99 €',
+    compare_title:'Comparaison côte-à-côte',compare_desc:'Comparez deux simulations en détail pour choisir la meilleure offre.',
+    history_title:'Mes simulations',empty_history:'Aucune simulation sauvegardée',empty_history_sub:'Créez votre première simulation pour la retrouver ici.',empty_history_cta:'Nouvelle simulation',
+    footer_free:'Mode gratuit — 3 simulations max',footer_unlock:'Débloquer Premium',
+    modal_title:'LeasEval Premium',modal_sub:'Accès complet à toutes les fonctions, une seule fois.',modal_once:'achat unique · accès permanent',modal_cta:'Débloquer maintenant',modal_close:'Plus tard',
+    feat_compare:'Comparaison côte-à-côte illimitée',feat_pdf:'Export PDF de chaque simulation',feat_excel:'Export Excel / CSV',feat_history:'Historique illimité',feat_modes:'Tous les futurs modes',
+    btn_clear:'Vider',
+    score_good:'✅ Bonne affaire',score_ok:'🟡 Pourquoi pas',score_bad:'🔴 Trop cher',
+    score_buyout_good:'✅ Rachat intéressant',score_buyout_ok:'🟡 Rachat acceptable',score_buyout_bad:'🔴 Rachat déconseillé',
+    monthly:'/mois',toast_saved:'Simulation sauvegardée ✓',toast_max:'Limite atteinte. Passez en Premium.',
+    toast_deleted:'Simulation supprimée',toast_premium:'Bienvenue en Premium ! 🎉',toast_cleared:'Historique vidé',
+    seuil_good:'bonne affaire',seuil_ok:'acceptable',
+    auth_login:'Se connecter',auth_register:'Créer un compte',auth_logout:'Se déconnecter',
+    sync_syncing:'Synchronisation…',sync_synced:'Synchronisé',
+    premium_cta:'Passer Premium — 4,99 €',
+  },
+  en:{
+    app_title:'Compare your LOA / LLD proposals',app_subtitle:'Instantly assess if your leasing offer is truly worthwhile.',
+    tab_new:'New simulation',tab_history:'History',tab_compare:'Compare',
+    form_vehicle:'Vehicle & proposal',form_vehicle_sub:'Basic information',
+    label_type:'Contract type',label_date:'Proposal date',label_vehicle:'Make and model',
+    label_vnr:'Discounted new price (VNR)',label_l1:'First payment',label_km:'Km / year',
+    label_n:'Number of monthly payments',label_lm:'Monthly payment',label_oa:'Purchase option',
+    hint_n:'Excluding first payment',hint_oa:'Buyout price at end of contract',
+    section_finance:'Financial parameters',section_services:'Services included in monthly rent',
+    svc_s1:'Maintenance',svc_s2:'Warranty extension',svc_s3:'GAP insurance',svc_s4:'Tyre replacement',svc_s5:'Replacement vehicle',
+    btn_save:'Save simulation',btn_reset:'Reset',
+    result_cost:'Leasing cost',result_buyout:'Purchase option (LOA)',result_export:'Exports & comparison',
+    kpi_total:'Total payments',kpi_pct_tl:'% paid / VNR',kpi_lr:'Actual monthly cost',
+    kpi_nban:'Years to exceed VNR',kpi_pct_lr:'Actual cost / VNR',kpi_vnr:'Discounted price',
+    kpi_oa:'Purchase option (OA)',kpi_oa_sub:'Contractual buyout price',kpi_cf:'Total cost with buyout (CF)',kpi_pct_cf:'% paid with buyout / VNR',
+    results_waiting:'Enter parameters to see the analysis',results_realtime:'Results update in real time',
+    premium_title:'Premium Features',premium_desc:'PDF/Excel export and side-by-side comparison',premium_unlock:'Unlock — €4.99',
+    compare_title:'Side-by-side comparison',compare_desc:'Compare two simulations in detail to pick the best offer.',
+    history_title:'My simulations',empty_history:'No saved simulations',empty_history_sub:'Create your first simulation to find it here.',empty_history_cta:'New simulation',
+    footer_free:'Free mode — 3 simulations max',footer_unlock:'Unlock Premium',
+    modal_title:'LeasEval Premium',modal_sub:'Full access to all features, one-time payment.',modal_once:'one-time · permanent access',modal_cta:'Unlock now',modal_close:'Maybe later',
+    feat_compare:'Unlimited side-by-side comparison',feat_pdf:'PDF export for each simulation',feat_excel:'Excel / CSV export',feat_history:'Unlimited history',feat_modes:'All future modes',
+    btn_clear:'Clear',
+    score_good:'✅ Good deal',score_ok:'🟡 Acceptable',score_bad:'🔴 Too expensive',
+    score_buyout_good:'✅ Good buyout',score_buyout_ok:'🟡 Acceptable buyout',score_buyout_bad:'🔴 Buyout not advised',
+    monthly:'/month',toast_saved:'Simulation saved ✓',toast_max:'3 simulation limit reached. Upgrade to Premium.',
+    toast_deleted:'Simulation deleted',toast_premium:'Welcome to Premium! 🎉',toast_cleared:'History cleared',
+    seuil_good:'good deal',seuil_ok:'acceptable',
+    auth_login:'Log in',auth_register:'Sign up',auth_logout:'Log out',
+    sync_syncing:'Syncing…',sync_synced:'Synced',
+    premium_cta:'Go Premium — €4.99',
+  }
+};
+function t(k){ return (i18n[state.lang]&&i18n[state.lang][k])||k; }
+function setLang(lang){
+  state.lang=lang;
+  document.getElementById('btn-fr').classList.toggle('active',lang==='fr');
+  document.getElementById('btn-en').classList.toggle('active',lang==='en');
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(i18n[lang][k]) el.textContent=i18n[lang][k]; });
+  calculate(); renderHistory();
+}
+// ---- Theme ----
+(function(){
+  const r=document.documentElement, btn=document.querySelector('[data-theme-toggle]');
+  let d='light';
+  r.setAttribute('data-theme',d);
+  if(btn) btn.addEventListener('click',()=>{
+    d=d==='dark'?'light':'dark'; r.setAttribute('data-theme',d);
+    btn.innerHTML=d==='dark'
+      ?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+      :'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+  });
+})();
+// ---- Tabs ----
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-selected','false')});
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('tab-'+name).setAttribute('aria-selected','true');
+  document.getElementById('panel-'+name).classList.add('active');
+  if(name==='history') renderHistory();
+  if(name==='compare') renderCompare();
+}
+function toggleLOA(){
+  const isLOA=document.getElementById('contract-type').value==='LOA';
+  const oaInput=document.getElementById('oa');
+  const oaGroup=document.getElementById('oa-group');
+  const loaSection=document.getElementById('res-loa-section');
+  if(oaInput) oaInput.disabled=!isLOA;
+  if(oaGroup) oaGroup.classList.toggle('disabled-block',!isLOA);
+  if(loaSection) loaSection.classList.toggle('disabled-block',!isLOA);
+  calculate();
+}
+function toggleService(key){
+  state.services[key]=!state.services[key];
+  const el=document.getElementById('svc-'+key);
+  el.classList.toggle('on',state.services[key]);
+  el.setAttribute('aria-checked',state.services[key]);
+  calculate();
+}
+// ---- Formatting ----
+function fmt(n,d=0){ if(n==null||isNaN(n))return'—'; return new Intl.NumberFormat('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d}).format(n); }
+function fmtEur(n){ return fmt(n)+' €'; }
+function fmtPct(n){ return fmt(n,1)+' %'; }
+// ---- Formulas ----
+function getBase(N,th){ if(N>=59)return th[3]; if(N>=47)return th[2]; if(N>=35)return th[1]; return th[0]; }
+function computeSeuil(N,KM,s,th,div100){
+  const {s1,s2,s3,s4,s5}=s;
+  const v=getBase(N,th)+((KM-15000)/5000)*2+2*s2+3*s1+2*s3+2*s4+2*s5;
+  return div100?v/100:v;
+}
+function compute(VNR,L1,N,LM,KM,OA,s){
+  const TL=L1+N*LM, PCT_TL=VNR?TL/VNR:null;
+  const S1=computeSeuil(N,KM,s,[40,50,60,70],true);
+  const S2=computeSeuil(N,KM,s,[45,55,70,80],true);
+  const CF=OA!=null?OA+TL:null;
+  const PCT_CF=(VNR&&CF!=null)?CF/VNR:null;
+  const S3=computeSeuil(N,KM,s,[102,104,105,106],false);
+  const S4=computeSeuil(N,KM,s,[106,108,111,114],false);
+  const LR=N?TL/N:null;
+  const PCT_LR=(VNR&&LR)?LR/VNR:null;
+  const NBAN=(LR&&VNR)?VNR/LR/12:null;
+  return{TL,PCT_TL,S1,S2,CF,PCT_CF,S3,S4,LR,PCT_LR,NBAN};
+}
+function scoreColor(pct,s1,s2){ if(pct<=s1)return'good'; if(pct<=s2)return'ok'; return'bad'; }
+function scoreLabelCost(c){ return c==='good'?t('score_good'):c==='ok'?t('score_ok'):t('score_bad'); }
+function scoreLabelBuyout(c){ return c==='good'?t('score_buyout_good'):c==='ok'?t('score_buyout_ok'):t('score_buyout_bad'); }
+// ---- Vehicle title helpers ----
+let titleManuallyEdited = false;
+function onVehicleNameInput(){
+  const val = document.getElementById('vehicle-name').value;
+  if(!titleManuallyEdited){
+    document.getElementById('sim-title').value = val;
+  }
+  clearTimeout(window._imgTimer);
+  window._imgTimer = setTimeout(()=>searchVehicleImage(true), 800);
+}
+function onSimTitleInput(){
+  const v = document.getElementById('sim-title').value;
+  titleManuallyEdited = (v.trim() !== '');
+  document.getElementById('sim-title-hint').style.display = titleManuallyEdited ? 'none' : 'block';
+}
+function getSimName(){
+  const title = document.getElementById('sim-title').value.trim();
+  const vehicle = document.getElementById('vehicle-name').value.trim();
+  return title || vehicle || 'Simulation';
+}
+// ---- Image helpers ----
+let currentImgUrl = '';
+function setImg(url, fromUrl=false){
+  const img = document.getElementById('vehicle-img');
+  const ph = document.getElementById('vehicle-img-placeholder');
+  const loading = document.getElementById('vehicle-img-loading');
+  if(!url){img.style.display='none';ph.style.display='block';loading.style.display='none';currentImgUrl='';return;}
+  loading.style.display='flex'; ph.style.display='none'; img.style.display='none';
+  const tmp = new Image();
+  tmp.onload = ()=>{img.src=url;img.style.display='block';loading.style.display='none';currentImgUrl=url;};
+  tmp.onerror = ()=>imgError();
+  tmp.src = url;
+  if(fromUrl) document.getElementById('vehicle-img-url').value = url;
+}
+function imgError(){
+  document.getElementById('vehicle-img').style.display='none';
+  document.getElementById('vehicle-img-loading').style.display='none';
+  document.getElementById('vehicle-img-placeholder').style.display='block';
+  currentImgUrl='';
+}
+function setImgFromUrl(url){ if(url && url.startsWith('http')) setImg(url,false); }
+async function searchVehicleImage(auto=false){
+  const q = document.getElementById('vehicle-name').value.trim();
+  if(!q) return;
+  document.getElementById('vehicle-img-loading').style.display='flex';
+  document.getElementById('vehicle-img-placeholder').style.display='none';
+  document.getElementById('vehicle-img').style.display='none';
+  try {
+    const encoded = encodeURIComponent(q+' automobile');
+    const resp = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(q.replace(/ /g,'_')));
+    if(resp.ok){
+      const data = await resp.json();
+      if(data.thumbnail && data.thumbnail.source){ setImg(data.thumbnail.source,true); return; }
+    }
+    // fallback: wikimedia commons search
+    const r2 = await fetch('https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch='+encoded+'&format=json&origin=*&srlimit=3');
+    if(r2.ok){
+      const d2=await r2.json();
+      if(d2.query&&d2.query.search&&d2.query.search.length){
+        const title=d2.query.search[0].title;
+        const r3=await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title));
+        if(r3.ok){const d3=await r3.json();if(d3.thumbnail&&d3.thumbnail.source){setImg(d3.thumbnail.source,true);return;}}
+      }
+    }
+    if(auto) imgError();
+    else { imgError(); showToast('Aucune image trouvée — collez une URL manuellement','error'); }
+  } catch(e){ imgError(); }
+}
+// ---- Slider state ----
+const sliderState = { s1:null, s2:null, result:null, dragging:false, overridden:false };
+// ---- LOA slider state ----
+const loaSliderState={s3:null,s4:null,result:null,_origResult:null,overridden:false,_MIN:0,_MAX:100,_TL:0};
+
+function renderLoaSlider(){
+  const {s3,s4,result}=loaSliderState;
+  if(s3==null||result==null) return;
+  const allVals=[s3,s4,result].filter(v=>v!=null);
+  const minVal=Math.min(...allVals);
+  const maxVal=Math.max(...allVals);
+  const MIN=Math.max(0,Math.floor((minVal-10)/10)*10);
+  const MAX=Math.ceil((maxVal+10)/10)*10;
+  const range=MAX-MIN||1;
+  const toX=v=>Math.min(Math.max((v-MIN)/range*100,0),100);
+  const x3=toX(s3),x4=toX(s4),xR=toX(result);
+  const gs=document.getElementById('loa-seg-green');
+  const os=document.getElementById('loa-seg-orange');
+  const rs=document.getElementById('loa-seg-red');
+  if(gs)gs.style.width=x3+'%';
+  if(os){os.style.left=x3+'%';os.style.width=Math.max(0,x4-x3)+'%';}
+  if(rs){rs.style.left=x4+'%';rs.style.width=Math.max(0,100-x4)+'%';}
+  const ms3=document.getElementById('loa-mk-s3');
+  const ms4=document.getElementById('loa-mk-s4');
+  if(ms3)ms3.style.left=x3+'%';
+  if(ms4)ms4.style.left=x4+'%';
+  const vs3=document.getElementById('loa-mk-s3-val');
+  const vs4=document.getElementById('loa-mk-s4-val');
+  if(vs3)vs3.textContent=fmtPct(s3);
+  if(vs4)vs4.textContent=fmtPct(s4);
+  const rMk=document.getElementById('loa-mk-result');
+  if(!rMk)return;
+  rMk.style.left=xR+'%';
+  const col=result<=s3?'var(--color-success)':result<=s4?'var(--color-warning)':'var(--color-error)';
+  const tagLabel=result<=s3?'Ideal':result<=s4?'Acceptable':'Deconseille';
+  rMk.style.background=col;
+  const tagEl=document.getElementById('loa-mk-result-tag');
+  if(tagEl){tagEl.className='slider-tag';tagEl.textContent=result<=s3?'Id\u00e9al':result<=s4?'Acceptable':'D\u00e9conseill\u00e9';tagEl.style.background=col;}
+  const lblEl=document.getElementById('loa-mk-result-label');
+  if(lblEl)lblEl.textContent=fmtPct(result);
+  const pctEl=document.getElementById('res-pct-cf');
+  if(pctEl)pctEl.style.color=col;
+  const resetBtn=document.getElementById('loa-slider-reset-btn');
+  if(resetBtn)resetBtn.style.display=loaSliderState.overridden?'inline-flex':'none';
+  loaSliderState._MIN=MIN;loaSliderState._MAX=MAX;
+  const loaLgMin=document.getElementById('loa-legend-min');
+  const loaLgMax=document.getElementById('loa-legend-max');
+  if(loaLgMin)loaLgMin.textContent=fmtPct(MIN);
+  if(loaLgMax)loaLgMax.textContent=fmtPct(MAX);
+}
+
+function resetLoaSlider(){
+  loaSliderState.overridden=false;
+  loaSliderState.result=loaSliderState._origResult;
+  renderLoaSlider();
+  const hint=document.getElementById('loa-slider-hint');if(hint)hint.remove();
+}
+
+(function(){
+  let dragging=false,startX=0,startPct=0;
+  function getW(){const w=document.getElementById('loa-slider-wrap');return w?w.getBoundingClientRect().width:300;}
+  function onStart(e){
+    const mk=document.getElementById('loa-mk-result');
+    if(!mk)return;
+    const t=e.touches?e.touches[0]:e;
+    const rect=mk.getBoundingClientRect();
+    if(t.clientX<rect.left-10||t.clientX>rect.right+10)return;
+    dragging=true;loaSliderState.overridden=true;
+    startX=t.clientX;startPct=loaSliderState.result||0;
+    document.body.style.userSelect='none';
+    e.preventDefault();
+  }
+  function onMove(e){
+    if(!dragging)return;
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    const range=(loaSliderState._MAX||100)-(loaSliderState._MIN||0);
+    const delta=((cx-startX)/getW())*range;
+    loaSliderState.result=Math.max(0,Math.round((startPct+delta)*10)/10);
+    renderLoaSlider();
+    const VNR=parseFloat(document.getElementById('vnr').value)||0;
+    const TL=loaSliderState._TL||0;
+    if(VNR&&TL){
+      const targetCF=(loaSliderState.result/100)*VNR;
+      const suggestedOA=Math.max(0,targetCF-TL);
+      let hint=document.getElementById('loa-slider-hint');
+      if(!hint){
+        hint=document.createElement('div');hint.id='loa-slider-hint';
+        hint.style.cssText='margin-top:var(--space-3);padding:var(--space-3) var(--space-4);background:var(--color-primary-soft);border-radius:var(--radius-lg);border:1px solid var(--color-primary);display:flex;align-items:center;gap:var(--space-3)';
+        const hintCont=document.getElementById('loa-hint-container');
+        if(hintCont)hintCont.appendChild(hint);
+      }
+      hint.innerHTML='<i data-lucide="lightbulb" style="width:16px;height:16px;color:var(--color-primary);flex-shrink:0"></i>'
+        +'<span style="font-size:var(--text-xs);color:var(--color-primary)">Option d\u2019achat \u00e0 demander\u00a0: <strong style="font-family:var(--font-display);font-size:var(--text-sm)">'+fmtEur(suggestedOA)+'</strong>'
+        +' pour un co\u00fbt rachat de <strong>'+fmtPct(loaSliderState.result)+'</strong> du VNR</span>';
+      if(typeof lucide!=='undefined')lucide.createIcons();
+    }
+  }
+  function onEnd(){dragging=false;document.body.style.userSelect='';}
+  document.addEventListener('mousedown',onStart);
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onEnd);
+  document.addEventListener('touchstart',onStart,{passive:false});
+  document.addEventListener('touchmove',onMove,{passive:false});
+  document.addEventListener('touchend',onEnd);
+})();
+
+function updateSlider(s1Pct, s2Pct, resultPct){
+  sliderState.s1=s1Pct; sliderState.s2=s2Pct;
+  if(!sliderState.overridden) sliderState.result=resultPct;
+  renderSlider();
+}
+function renderSlider(){
+  const {s1,s2,result}=sliderState;
+  if(s1==null) return;
+  // Dynamic range: min = floor to nearest 10 of (min_val * 0.6), max = ceil to nearest 10 of (max_val * 1.35)
+  const allVals=[s1,s2,result,sliderState._origResult||result].filter(v=>v!=null);
+  const minVal=Math.min(...allVals);
+  const maxVal=Math.max(...allVals);
+  const MIN=Math.max(0, Math.floor((minVal-10)/10)*10);
+  const MAX=Math.ceil((maxVal+10)/10)*10;
+  const range=MAX-MIN;
+  const toX=v=>Math.min(Math.max((v-MIN)/range*100,0),100);
+  const x1=toX(s1), x2=toX(s2), xR=toX(result);
+  document.getElementById('seg-green').style.width=x1+'%';
+  document.getElementById('seg-orange').style.left=x1+'%';
+  document.getElementById('seg-orange').style.width=Math.max(0,x2-x1)+'%';
+  document.getElementById('seg-red').style.left=x2+'%';
+  document.getElementById('seg-red').style.width=Math.max(0,100-x2)+'%';
+  document.getElementById('mk-s1').style.left=x1+'%';
+  document.getElementById('mk-s2').style.left=x2+'%';
+  const rMk=document.getElementById('mk-result');
+  rMk.style.left=xR+'%';
+  const col=result<=s1?'var(--color-success)':result<=s2?'var(--color-warning)':'var(--color-error)';
+  const tagLabel=result<=s1?t('score_good').replace(/^[^ ]+ /,''):result<=s2?t('score_ok').replace(/^[^ ]+ /,''):t('score_bad').replace(/^[^ ]+ /,'');
+  rMk.style.background=col;
+  const tagEl=document.getElementById('mk-result-tag');
+  if(tagEl){tagEl.className='slider-tag';tagEl.textContent=result<=s1?'Bonne affaire':result<=s2?'Pourquoi pas':'Trop cher';tagEl.style.background=col;tagEl.style.position='absolute';}
+  document.getElementById('mk-result-label').textContent=fmtPct(result);
+  document.getElementById('mk-s1-val').textContent=fmtPct(s1);
+  document.getElementById('mk-s2-val').textContent=fmtPct(s2);
+  document.getElementById('thresh-s1-lbl').textContent=fmtPct(s1);
+  document.getElementById('thresh-s2-lbl').textContent=fmtPct(s2);
+  const tl2=document.getElementById('thresh-s1-lbl2'); if(tl2) tl2.textContent=fmtPct(s1);
+  const tl3=document.getElementById('thresh-s2-lbl2'); if(tl3) tl3.textContent=fmtPct(s2);
+  document.getElementById('slider-reset-btn').style.display=sliderState.overridden?'inline-flex':'none';
+  // Update legend with actual dynamic range
+  const lgMin=document.getElementById('legend-min');
+  const lgMax=document.getElementById('legend-max');
+  if(lgMin)lgMin.textContent=fmtPct(MIN);
+  if(lgMax)lgMax.textContent=fmtPct(MAX);
+  // Store range for drag calc
+  sliderState._MIN=MIN; sliderState._MAX=MAX;
+}
+function resetSlider(){
+  sliderState.overridden=false; sliderState.result=sliderState._origResult; renderSlider();
+  const hint=document.getElementById('slider-lm-hint'); if(hint) hint.remove();
+  // also reset LOA slider
+  resetLoaSlider();
+  calculate();
+}
+// Slider drag
+(function(){
+  let dragging=false, startX=0, startPct=0;
+  function getWrapWidth(){ return document.getElementById('slider-wrap').getBoundingClientRect().width; }
+  function startDrag(e){
+    dragging=true; sliderState.overridden=true;
+    startX=(e.touches?e.touches[0].clientX:e.clientX);
+    startPct=sliderState.result;
+    document.body.style.userSelect='none';
+  }
+  function onMove(e){
+    if(!dragging) return;
+    const cx=(e.touches?e.touches[0].clientX:e.clientX);
+    const dx=cx-startX;
+    const w=getWrapWidth();
+    const MAX=(sliderState._MAX||100)-(sliderState._MIN||0);
+    const delta=(dx/w)*MAX;
+    sliderState.result=Math.max(0,Math.round((startPct+delta)*10)/10);
+    renderSlider();
+    // update % display
+    const pTl=document.getElementById('res-pct-tl');
+    if(pTl){pTl.textContent=fmtPct(sliderState.result);const _sc=sliderState.result<=sliderState.s1?'var(--color-success)':sliderState.result<=sliderState.s2?'var(--color-warning)':'var(--color-error)';pTl.style.color=_sc;}
+    document.getElementById('mk-result-label').textContent=fmtPct(sliderState.result);
+    const _col=sliderState.result<=sliderState.s1?'var(--color-success)':sliderState.result<=sliderState.s2?'var(--color-warning)':'var(--color-error)';
+    const _tag=document.getElementById('mk-result-tag');
+    if(_tag){_tag.className='slider-tag';_tag.textContent=sliderState.result<=sliderState.s1?'Bonne affaire':sliderState.result<=sliderState.s2?'Pourquoi pas':'Trop cher';_tag.style.background=_col;}
+    document.getElementById('mk-result').style.background=_col;
+    // derive suggested loyer mensuel
+    const VNR=parseFloat(document.getElementById('vnr').value)||0;
+    const L1=parseFloat(document.getElementById('l1').value)||0;
+    const N=parseInt(document.getElementById('n-months').value)||0;
+    if(VNR&&N){
+      const targetTL=(sliderState.result/100)*VNR;
+      const suggestedLM=Math.max(0,(targetTL-L1)/N);
+      document.getElementById('res-tl').textContent=fmtEur(targetTL);
+      document.getElementById('res-lr').textContent=fmtEur(suggestedLM)+t('monthly');
+      // update LOA ligne 1 from main slider
+      const tlLoaEl2=document.getElementById('res-tl-loa');
+      if(tlLoaEl2)tlLoaEl2.textContent=fmtEur(targetTL);
+      const OA2=parseFloat(document.getElementById('oa').value)||0;
+      const CF2=targetTL+OA2;
+      const VNR2=VNR;
+      const cfEl=document.getElementById('res-cf');if(cfEl)cfEl.textContent=fmtEur(CF2);
+      const pctCF2=VNR2?CF2/VNR2*100:0;
+      const pctCfEl=document.getElementById('res-pct-cf');
+      if(pctCfEl){pctCfEl.textContent=fmtPct(pctCF2);
+        const s3v=loaSliderState.s3,s4v=loaSliderState.s4;
+        pctCfEl.style.color=s3v&&pctCF2<=s3v?'var(--color-success)':s4v&&pctCF2<=s4v?'var(--color-warning)':'var(--color-error)';}
+      if(loaSliderState._TL!==undefined){loaSliderState._TL=targetTL;loaSliderState._origResult=pctCF2;// always update: TL changed, so recalc CF regardless of override
+      loaSliderState.result=pctCF2;loaSliderState.overridden=false;renderLoaSlider();const loaHint=document.getElementById('loa-slider-hint');if(loaHint)loaHint.remove();}
+      // update NBAN
+      const LR2=N?(targetTL/N):0;
+      const NBAN2=(LR2&&VNR)?VNR/LR2/12:0;
+      const nbanEl=document.getElementById('res-nban');
+      if(nbanEl&&NBAN2){const ny2=Math.floor(NBAN2),nm2=Math.round((NBAN2-ny2)*12);nbanEl.textContent=ny2+' ans'+(nm2>0?' '+nm2+' mois':'');}
+      // show suggested LM hint
+      let hint=document.getElementById('slider-lm-hint');
+      if(!hint){hint=document.createElement('div');hint.id='slider-lm-hint';hint.style.cssText='margin-top:var(--space-3);padding:var(--space-3) var(--space-4);background:var(--color-primary-soft);border-radius:var(--radius-lg);border:1px solid var(--color-primary);display:flex;align-items:center;gap:var(--space-3)';
+        document.getElementById('slider-section')||document.querySelector('.slider-section').after(hint);
+        document.querySelector('.slider-section').insertAdjacentElement('afterend',hint);}
+      hint.innerHTML=`<i data-lucide="lightbulb" style="width:16px;height:16px;color:var(--color-primary);flex-shrink:0"></i><span style="font-size:var(--text-xs);color:var(--color-primary)">À demander au vendeur : <strong style="font-family:var(--font-display);font-size:var(--text-sm)">${fmtEur(suggestedLM)}/mois</strong> pour atteindre <strong>${fmtPct(sliderState.result)}</strong> du VNR</span>`;
+      lucide.createIcons();
+    }
+  }
+  function endDrag(){
+    dragging=false; document.body.style.userSelect='';
+    // keep hint visible until user resets
+  }
+  document.addEventListener('DOMContentLoaded',()=>{
+    const mk=document.getElementById('mk-result');
+    if(mk){mk.addEventListener('mousedown',startDrag);mk.addEventListener('touchstart',startDrag,{passive:true});}
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('touchmove',onMove,{passive:true});
+    document.addEventListener('mouseup',endDrag);
+    document.addEventListener('touchend',endDrag);
+  });
+})();
+// ---- Calculate ----
+function calculate(){
+  const VNR=parseFloat(document.getElementById('vnr').value)||0;
+  const L1=parseFloat(document.getElementById('l1').value)||0;
+  const N=parseInt(document.getElementById('n-months').value)||0;
+  const LM=parseFloat(document.getElementById('lm').value)||0;
+  const KM=parseInt(document.getElementById('km').value)||15000;
+  const isLOA=document.getElementById('contract-type').value==='LOA';
+  const OA=isLOA?(parseFloat(document.getElementById('oa').value)||0):null;
+  if(!isLOA){
+    ['res-oa','res-cf','res-cf-formula','res-pct-cf','res-pct-cf-sub','res-s3','res-s4'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.textContent='—';
+    });
+    const bar=document.getElementById('res-cf-bar');
+    if(bar){bar.style.width='0%'; bar.className='progress-fill';}
+  }
+  if(!VNR||!N||!LM){
+    document.getElementById('results-placeholder').style.display='flex';
+    document.getElementById('results-panel').classList.remove('visible');
+    return;
+  }
+  const r=compute(VNR,L1,N,LM,KM,OA,state.services);
+  document.getElementById('results-placeholder').style.display='none';
+  document.getElementById('results-panel').classList.add('visible');
+  const type=document.getElementById('contract-type').value;
+  const badge=document.getElementById('res-type-badge');
+  badge.textContent=type; badge.className='tag '+(type==='LOA'?'tag-loa':'tag-lld');
+  // Cost summary row
+  document.getElementById('res-tl').textContent=fmtEur(r.TL);
+  const pctTlEl=document.getElementById('res-pct-tl');
+  const tlC=scoreColor(r.PCT_TL*100,r.S1*100,r.S2*100);
+  if(pctTlEl){pctTlEl.textContent=fmtPct(r.PCT_TL*100);pctTlEl.style.color=tlC==='good'?'var(--color-success)':tlC==='ok'?'var(--color-warning)':'var(--color-error)';}
+  document.getElementById('res-vnr-display').textContent=fmtEur(VNR);
+  // Score badge
+  const tlB=document.getElementById('res-tl-badge');
+  tlB.textContent=scoreLabelCost(tlC); tlB.className='score-badge '+tlC;
+  // Slider
+  sliderState._origResult=r.PCT_TL*100;
+  updateSlider(r.S1*100, r.S2*100, r.PCT_TL*100);
+  // Equation row
+  document.getElementById('eq-vnr').textContent=fmtEur(VNR);
+  document.getElementById('res-lr').textContent=fmtEur(r.LR)+t('monthly');
+  const ny=Math.floor(r.NBAN), nm=Math.round((r.NBAN-ny)*12);
+  document.getElementById('res-nban').textContent=ny+' ans'+(nm>0?' '+nm+' mois':'');
+  document.getElementById('res-pct-lr').textContent=r.PCT_LR?fmt(r.PCT_LR*100,3)+' %':'—';
+  if(OA!==null){
+    document.getElementById('res-oa').textContent=fmtEur(OA);
+    document.getElementById('res-cf').textContent=fmtEur(r.CF);
+    document.getElementById('res-cf-formula').textContent=fmtEur(r.TL)+' + '+fmtEur(OA);
+    const cfC=scoreColor(r.PCT_CF*100,r.S3,r.S4);
+    const cfB=document.getElementById('res-cf-badge');
+    if(cfB){cfB.textContent=scoreLabelBuyout(cfC); cfB.className='score-badge '+cfC;}
+    document.getElementById('res-pct-cf').textContent=fmtPct(r.PCT_CF*100);
+    document.getElementById('res-pct-cf-sub').innerHTML='';
+    // mirror TL in LOA equation row
+    const tlLoaEl=document.getElementById('res-tl-loa');
+    if(tlLoaEl) tlLoaEl.textContent=fmtEur(r.TL);
+    // feed LOA slider
+    loaSliderState._TL=r.TL;
+    loaSliderState.s3=r.S3; loaSliderState.s4=r.S4;
+    loaSliderState._origResult=r.PCT_CF*100;
+    if(!loaSliderState.overridden) loaSliderState.result=r.PCT_CF*100;
+    renderLoaSlider();
+    if(!loaSliderState.overridden){const hint=document.getElementById('loa-slider-hint');if(hint)hint.remove();}
+    document.getElementById('res-s3').textContent=fmtPct(r.S3);
+    document.getElementById('res-s4').textContent=fmtPct(r.S4);
+  }
+}
+// ---- Save ----
+function saveSimulation(){
+  const VNR=parseFloat(document.getElementById('vnr').value);
+  const L1=parseFloat(document.getElementById('l1').value)||0;
+  const N=parseInt(document.getElementById('n-months').value);
+  const LM=parseFloat(document.getElementById('lm').value);
+  const KM=parseInt(document.getElementById('km').value)||15000;
+  const isLOA=document.getElementById('contract-type').value==='LOA';
+  const OA=isLOA?(parseFloat(document.getElementById('oa').value)||0):null;
+  const name=getSimName();
+  if(!VNR||!N||!LM){showToast('Remplissez VNR, N loyers et loyer mensuel','error');return;}
+  if(!state.premium&&state.history.length>=state.maxFree){showToast(t('toast_max'),'error');openPremiumModal();return;}
+  const r=compute(VNR,L1,N,LM,KM,OA,{...state.services});
+  const score=scoreColor(r.PCT_TL*100,r.S1*100,r.S2*100);
+  const _newSim={id:Date.now(),name,date:document.getElementById('sim-date').value,type:document.getElementById('contract-type').value,VNR,L1,N,LM,KM,OA,services:{...state.services},results:r,score,imgUrl:currentImgUrl,vehicle:document.getElementById('vehicle-name').value};
+  state.history.unshift(_newSim);
+  if(typeof syncSimToCloud==='function')syncSimToCloud(_newSim).catch(()=>{});
+  showToast(t('toast_saved'),'success');
+  renderHistory();
+}
+// ---- History ----
+function renderHistory(){
+  const c=document.getElementById('history-container');
+  const cl=document.getElementById('history-count-label');
+  const bx=document.getElementById('btn-export-all-excel');
+  if(!state.history.length){
+    c.innerHTML=`<div class="empty-state"><div class="empty-state-icon"><i data-lucide="folder-open"></i></div><h3>${t('empty_history')}</h3><p>${t('empty_history_sub')}</p><button class="btn btn-primary" onclick="switchTab('simulator')">${t('empty_history_cta')}</button></div>`;
+    cl.textContent=''; bx.style.display='none'; lucide.createIcons(); return;
+  }
+  const max=state.premium?'∞':state.maxFree;
+  cl.textContent=`${state.history.length} / ${max}`;
+  bx.style.display=state.premium?'inline-flex':'none';
+  c.innerHTML='<div class="history-list">'+state.history.map(sim=>{
+    const r=sim.results;
+    return `<div class="history-item" onclick="loadSim(${sim.id})" role="button" tabindex="0" onkeydown="if(event.key==='Enter')loadSim(${sim.id})">
+      ${sim.imgUrl?`<img src="${sim.imgUrl}" alt="" style="width:56px;height:44px;object-fit:cover;border-radius:var(--radius-md);flex-shrink:0">`:`<div class="history-badge ${sim.score}">${Math.round(r.PCT_TL*100)}%</div>`}
+      <div class="history-info">
+        <div class="history-title">${sim.name}</div>
+        <div class="history-meta"><span class="tag ${sim.type==='LOA'?'tag-loa':'tag-lld'}">${sim.type}</span>${sim.date?' · '+sim.date:''} · ${sim.N} mois · ${fmt(sim.KM)} km/an</div>
+      </div>
+      <div class="history-kpis">
+        <div class="history-kpi"><div class="history-kpi-val">${fmtEur(r.TL)}</div><div class="history-kpi-label">Total</div></div>
+        <div class="history-kpi"><div class="history-kpi-val">${fmtEur(r.LR)}/m</div><div class="history-kpi-label">Loyer réel</div></div>
+      </div>
+      <div class="history-actions">
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();renameSim(${sim.id})" title="Renommer"><i data-lucide="pencil" style="width:13px;height:13px"></i></button>
+        ${state.premium?`<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();exportPDF(${sim.id})" title="PDF">📄</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();delSim(${sim.id})" title="Supprimer"><i data-lucide="trash-2" style="width:13px;height:13px"></i></button>
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+  lucide.createIcons();
+}
+function delSim(id){ state.history=state.history.filter(s=>s.id!==id); renderHistory(); showToast(t('toast_deleted')); }
+function renameSim(id){
+  const sim=state.history.find(s=>s.id===id); if(!sim)return;
+  const newName=prompt('Renommer la simulation :',sim.name);
+  if(newName&&newName.trim()){sim.name=newName.trim();renderHistory();showToast('Simulation renommée ✓','success');}
+}
+function clearHistory(){ if(confirm('Vider tout l\'historique ?')){ state.history=[]; renderHistory(); showToast(t('toast_cleared')); } }
+function loadSim(id){
+  const sim=state.history.find(s=>s.id===id); if(!sim)return;
+  document.getElementById('contract-type').value=sim.type;
+  document.getElementById('vehicle-name').value=sim.name;
+  document.getElementById('sim-date').value=sim.date||'';
+  document.getElementById('vnr').value=sim.VNR||'';
+  document.getElementById('l1').value=sim.L1||'';
+  document.getElementById('n-months').value=sim.N||'';
+  document.getElementById('lm').value=sim.LM||'';
+  document.getElementById('km').value=sim.KM||'';
+  if(sim.OA!=null) document.getElementById('oa').value=sim.OA;
+  Object.keys(sim.services).forEach(k=>{
+    state.services[k]=sim.services[k];
+    const el=document.getElementById('svc-'+k);
+    if(el){el.classList.toggle('on',sim.services[k]);el.setAttribute('aria-checked',sim.services[k]);}
+  });
+  document.getElementById('sim-title').value=sim.name||'';
+  titleManuallyEdited=!!(sim.name&&sim.vehicle&&sim.name!==sim.vehicle);
+  document.getElementById('sim-title-hint').style.display=titleManuallyEdited?'none':'block';
+  if(sim.imgUrl){setImg(sim.imgUrl,true);}else{setImg('');}
+  toggleLOA(); calculate(); switchTab('simulator');
+}
+function resetForm(){
+  document.getElementById('sim-form').reset();
+  Object.keys(state.services).forEach(k=>{state.services[k]=false;const el=document.getElementById('svc-'+k);if(el){el.classList.remove('on');el.setAttribute('aria-checked','false');}});
+  document.getElementById('results-placeholder').style.display='flex';
+  document.getElementById('results-panel').classList.remove('visible');
+  titleManuallyEdited=false;
+  document.getElementById('sim-title-hint').style.display='block';
+  setImg('');
+  document.getElementById('vehicle-img-url').value='';
+  toggleLOA();
+}
+// ---- Compare ----
+function renderCompare(){
+  if(!state.premium){document.getElementById('compare-premium-wrap').style.display='block';document.getElementById('compare-content').style.display='none';return;}
+  document.getElementById('compare-premium-wrap').style.display='none';
+  document.getElementById('compare-content').style.display='block';
+  if(state.history.length<2){
+    document.getElementById('compare-content').innerHTML=`<div class="card"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="git-compare"></i></div><h3>Minimum 2 simulations requises</h3><p>Sauvegardez au moins deux simulations pour les comparer.</p><button class="btn btn-primary" onclick="switchTab('simulator')">Nouvelle simulation</button></div></div>`;
+    lucide.createIcons(); return;
+  }
+  const opts=s=>`<option value="">— Aucune —</option>`+state.history.map(h=>`<option value="${h.id}">${h.name} (${h.type} · ${Math.round(h.results.PCT_TL*100)}%)</option>`).join('');
+  const cols=['A','B','C','D'];
+  const selects=cols.map((c,i)=>`<div class="form-group"><label class="form-label" style="display:flex;align-items:center;gap:6px"><span style="width:20px;height:20px;border-radius:50%;background:var(--color-primary);color:white;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center">${c}</span> Simulation ${c}</label><select class="form-input" id="cmp-${c.toLowerCase()}" onchange="updateCmp()">${opts()}</select></div>`).join('');
+  document.getElementById('compare-content').innerHTML=`<div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:var(--space-3);margin-bottom:var(--space-5)">${selects}</div>
+    <div id="cmp-result" style="overflow-x:auto"></div></div>`;
+  // Pre-select first 2
+  if(state.history[0]) document.getElementById('cmp-a').value=state.history[0].id;
+  if(state.history[1]) document.getElementById('cmp-b').value=state.history[1].id;
+  lucide.createIcons(); updateCmp();
+}
+function updateCmp(){
+  const ids=['a','b','c','d'].map(c=>{const el=document.getElementById('cmp-'+c);return el?parseInt(el.value)||null:null;});
+  const sims=ids.map(id=>id?state.history.find(s=>s.id===id):null).filter(Boolean);
+  if(sims.length<2){document.getElementById('cmp-result').innerHTML='<p style="color:var(--color-text-muted);font-size:var(--text-sm);padding:var(--space-4)">Sélectionnez au moins 2 simulations.</p>';return;}
+
+  function pctColor(val,s1,s2){
+    if(val<=s1) return 'var(--color-success)';
+    if(val<=s2) return 'var(--color-warning)';
+    return 'var(--color-error)';
+  }
+  function scoreLabel(s,score){ return scoreLabelCost(score); }
+  function scoreBuyout(pct,s3,s4){ if(pct<=s3)return'good'; if(pct<=s4)return'ok'; return'bad'; }
+  function tick(isWinner){ return isWinner?'<span style="color:var(--color-success);margin-left:4px;font-size:13px">✓</span>':''; }
+  function fmtNban(n){ if(!n)return'—'; const y=Math.floor(n),m=Math.round((n-y)*12); return y+' an'+(y>1?'s':'')+(m>0?' '+m+' mois':''); }
+
+  const colors=['var(--color-text-muted)','var(--color-text-muted)','var(--color-text-muted)','var(--color-text-muted)'];
+
+  // Build rows
+  const rows=[];
+
+  // 1. Total loyers
+  rows.push({ l:'Total loyers', cells: sims.map(sim=>({html:`<span style="font-family:var(--font-display);font-weight:700">${fmtEur(sim.results.TL)}</span>`, val:sim.results.TL})) });
+
+  // 2. % payé/VNR + score badge
+  rows.push({ l:'% payé / VNR', cells: sims.map(sim=>{
+    const pct=sim.results.PCT_TL*100, col=pctColor(pct,sim.results.S1*100,sim.results.S2*100);
+    return {html:`<div style="font-family:var(--font-display);font-weight:700;color:${col}">${fmtPct(pct)}</div><div style="margin-top:4px"><span class="score-badge ${sim.score}">${scoreLabelCost(sim.score)}</span></div>`, val:pct};
+  })});
+
+  // 3. Loyer réel/mois — tick on minimum
+  const lrVals=sims.map(s=>s.results.LR); const lrMin=Math.min(...lrVals);
+  rows.push({ l:'Loyer réel / mois', cells: sims.map(sim=>{
+    const isMin=sim.results.LR===lrMin;
+    return {html:`<span style="font-family:var(--font-display);font-weight:700">${fmtEur(sim.results.LR)}/mois</span>${tick(isMin)}`, val:sim.results.LR};
+  })});
+
+  // 4. % payé si rachat/VNR + score badge buyout
+  rows.push({ l:'% payé si rachat / VNR', cells: sims.map(sim=>{
+    const pctCf=sim.results.PCT_CF!=null?sim.results.PCT_CF*100:null;
+    if(pctCf==null) return {html:`<span style="color:var(--color-text-faint)">—</span>`, val:null};
+    const col=pctColor(pctCf,sim.results.S3,sim.results.S4);
+    const sc=scoreBuyout(pctCf,sim.results.S3,sim.results.S4);
+    const scLabel=sc==='good'?t('score_buyout_good'):sc==='ok'?t('score_buyout_ok'):t('score_buyout_bad');
+    return {html:`<div style="font-family:var(--font-display);font-weight:700;color:${col}">${fmtPct(pctCf)}</div><div style="margin-top:4px"><span class="score-badge ${sc}">${scLabel}</span></div>`, val:pctCf};
+  })});
+
+  // 5. Années avant dép. VNR — tick on maximum (more years = cheaper monthly)
+  const nbanVals=sims.map(s=>s.results.NBAN||0); const nbanMax=Math.max(...nbanVals);
+  rows.push({ l:'Années avant dép. VNR', cells: sims.map(sim=>{
+    const isMax=sim.results.NBAN&&sim.results.NBAN===nbanMax;
+    return {html:`<span style="font-family:var(--font-display);font-weight:700">${fmtNban(sim.results.NBAN)}</span>${tick(isMax)}`, val:sim.results.NBAN};
+  })});
+
+  const colLetters=['A','B','C','D'];
+  const thead=`<thead><tr style="border-bottom:2px solid var(--color-divider)">
+    <th style="padding:var(--space-3) var(--space-4);text-align:left;font-size:var(--text-xs);color:var(--color-text-faint);min-width:180px"></th>
+    ${sims.map((sim,i)=>`<th style="padding:var(--space-3) var(--space-4);text-align:left;min-width:160px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+        <span style="width:20px;height:20px;border-radius:50%;background:${colors[i]};color:white;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${colLetters[i]}</span>
+        <span class="tag ${sim.type==='LOA'?'tag-loa':'tag-lld'}">${sim.type}</span>
+      </div>
+      <div style="font-size:var(--text-sm);font-weight:600;color:var(--color-text)">${sim.name}</div>
+      ${sim.date?`<div style="font-size:10px;color:var(--color-text-faint)">${sim.date}</div>`:''}
+    </th>`).join('')}
+  </tr></thead>`;
+
+  const tbody=`<tbody>${rows.map((row,i)=>`<tr style="border-bottom:1px solid var(--color-divider);${i%2===0?'background:var(--color-surface-2)':''}">
+    <td style="padding:var(--space-3) var(--space-4);font-size:var(--text-xs);font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.03em">${row.l}</td>
+    ${row.cells.map(c=>`<td style="padding:var(--space-3) var(--space-4)">${c.html}</td>`).join('')}
+  </tr>`).join('')}</tbody>`;
+
+  document.getElementById('cmp-result').innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:${180+sims.length*160}px">${thead}${tbody}</table></div>`;
+}
+// ---- PDF Export ----
+function exportPDF(id){
+  if(!state.premium){openPremiumModal();return;}
+  const sim=state.history.find(s=>s.id===id); if(!sim)return;
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const r=sim.results, m=20; let y=m;
+  doc.setFillColor(26,115,232); doc.rect(0,0,210,28,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(18); doc.setFont('helvetica','bold');
+  doc.text('LeasEval',m,18); doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.text('Analyse '+sim.type,m+40,18); y=40;
+  doc.setTextColor(13,27,42); doc.setFontSize(13); doc.setFont('helvetica','bold');
+  doc.text(sim.name,m,y); y+=8;
+  if(sim.date){doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(100,100,100);doc.text('Date : '+sim.date,m,y);y+=7;}
+  doc.setDrawColor(226,232,240);doc.setLineWidth(.3);doc.line(m,y,190,y);y+=8;
+  const addSec=(title,items)=>{
+    doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(26,115,232);
+    doc.text(title,m,y);y+=6;
+    items.forEach(([lbl,val,col])=>{
+      doc.setFont('helvetica','normal');doc.setTextColor(100,100,100);doc.setFontSize(8.5);doc.text(lbl,m+2,y);
+      doc.setFont('helvetica','bold');doc.setTextColor(...(col||[13,27,42]));doc.text(val,140,y,{align:'right'});y+=6;
+    });y+=3;
+  };
+  addSec('Paramètres',[['VNR',fmtEur(sim.VNR)],['1er loyer',fmtEur(sim.L1)],['Loyers',sim.N+' × '+fmtEur(sim.LM)],['Km/an',fmt(sim.KM)+' km']]);
+  const tc=sim.score==='good'?[22,163,74]:sim.score==='ok'?[217,119,6]:[220,38,38];
+  addSec('Résultats',[['Total loyers',fmtEur(r.TL),tc],['% payé/VNR',fmtPct(r.PCT_TL*100),tc],['Seuil bonne affaire',fmtPct(r.S1*100),[22,163,74]],['Seuil acceptable',fmtPct(r.S2*100),[217,119,6]],['Loyer réel',fmtEur(r.LR)+'/mois'],['Durée avant dépassement VNR',r.NBAN?fmt(r.NBAN,1)+' ans':'—']]);
+  if(sim.type==='LOA'&&sim.OA!=null){
+    const cc=scoreColor(r.PCT_CF*100,r.S3,r.S4);
+    const ccol=cc==='good'?[22,163,74]:cc==='ok'?[217,119,6]:[220,38,38];
+    addSec('Option de rachat (LOA)',[["Option d'achat",fmtEur(sim.OA)],['Coût total si rachat',fmtEur(r.CF),ccol],['% payé en cas de rachat',fmtPct(r.PCT_CF*100),ccol]]);
+  }
+  const svcs=Object.entries(sim.services).filter(([,v])=>v).map(([k])=>({s1:'Entretien',s2:'Ext. garantie',s3:'Perte fin.',s4:'Pneumatiques',s5:'Véhicule remplact.'}[k]));
+  if(svcs.length) addSec('Services inclus',[[svcs.join(', '),'✓',[22,163,74]]]);
+  doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(180,180,180);
+  doc.text('LeasEval — Généré le '+new Date().toLocaleDateString('fr-FR'),m,285);
+  doc.save('LeasEval_'+sim.name.replace(/[^a-z0-9]/gi,'_')+'.pdf');
+  showToast('PDF exporté ✓','success');
+}
+// ---- Excel ----
+function exportAllExcel(){
+  if(!state.premium){openPremiumModal();return;}
+  if(!state.history.length)return;
+  const wb=XLSX.utils.book_new();
+  const hdr=['Véhicule','Type','Date','VNR','1er loyer','N loyers','Loyer mensuel','KM/an','Option achat','Total loyers','%/VNR','Seuil1%','Seuil2%','Loyer réel','NBAN','%LR/VNR','Coût rachat','%rachat/VNR','Seuil3','Seuil4','S1','S2','S3','S4','S5','Score'];
+  const rows=state.history.map(sim=>{const r=sim.results,s=sim.services;return[sim.name,sim.type,sim.date||'',sim.VNR,sim.L1,sim.N,sim.LM,sim.KM,sim.OA||'',r.TL,+(r.PCT_TL*100).toFixed(1),+(r.S1*100).toFixed(1),+(r.S2*100).toFixed(1),+r.LR.toFixed(2),+r.NBAN.toFixed(2),+(r.PCT_LR*100).toFixed(2),r.CF||'',r.PCT_CF?+(r.PCT_CF*100).toFixed(1):'',r.S3,r.S4,s.s1?'Oui':'',s.s2?'Oui':'',s.s3?'Oui':'',s.s4?'Oui':'',s.s5?'Oui':'',sim.score];});
+  const ws=XLSX.utils.aoa_to_sheet([hdr,...rows]);
+  ws['!cols']=hdr.map((_,i)=>({wch:i<2?30:14}));
+  XLSX.utils.book_append_sheet(wb,ws,'Simulations');
+  XLSX.writeFile(wb,'LeasEval_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  showToast('Excel exporté ✓','success');
+}
+// ---- Premium ----
+function openPremiumModal(){document.getElementById('premium-modal').classList.add('open');}
+function closePremiumModal(){document.getElementById('premium-modal').classList.remove('open');}
+function activatePremium(){
+  state.premium=true;
+  closePremiumModal();
+  document.getElementById('export-blurred').classList.remove('premium-blur');
+  document.getElementById('premium-overlay').style.display='none';
+  document.getElementById('export-blurred').innerHTML=`<div class="section-title">Exports & comparaison</div><div style="display:flex;gap:var(--space-3);flex-wrap:wrap"><button class="btn btn-secondary" onclick="exportCurrentPDF()">📄 Export PDF</button><button class="btn btn-secondary" onclick="exportAllExcel()">📊 Export Excel</button><button class="btn btn-primary" onclick="switchTab('compare')">⚖️ Comparer</button></div>`;
+  showToast(t('toast_premium'),'success');
+  renderHistory(); renderCompare();
+}
+function exportCurrentPDF(){
+  const VNR=parseFloat(document.getElementById('vnr').value);
+  const N=parseInt(document.getElementById('n-months').value);
+  const LM=parseFloat(document.getElementById('lm').value);
+  if(!VNR||!N||!LM){showToast('Remplissez les champs requis','error');return;}
+  const L1=parseFloat(document.getElementById('l1').value)||0;
+  const KM=parseInt(document.getElementById('km').value)||15000;
+  const isLOA=document.getElementById('contract-type').value==='LOA';
+  const OA=isLOA?(parseFloat(document.getElementById('oa').value)||0):null;
+  const r=compute(VNR,L1,N,LM,KM,OA,{...state.services});
+  const tempId=-1;
+  state.history.unshift({id:tempId,name:document.getElementById('vehicle-name').value||'Simulation',date:document.getElementById('sim-date').value,type:document.getElementById('contract-type').value,VNR,L1,N,LM,KM,OA,services:{...state.services},results:r,score:scoreColor(r.PCT_TL*100,r.S1*100,r.S2*100)});
+  exportPDF(tempId);
+  state.history.shift();
+}
+// ---- JSON Backup / Restore ----
+function exportHistoryJSON(){
+  if(!state.history.length){showToast('Historique vide','error');return;}
+  const data=JSON.stringify({version:1,exported:new Date().toISOString(),history:state.history},null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='LeasEval_backup_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click(); URL.revokeObjectURL(a.href);
+  showToast('Backup exporté ✓','success');
+}
+function importHistoryJSON(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const parsed=JSON.parse(ev.target.result);
+      const imported=parsed.history||parsed;
+      if(!Array.isArray(imported)) throw new Error('Format invalide');
+      const merged=new Map();
+      [...state.history,...imported].forEach(s=>merged.set(s.id,s));
+      state.history=Array.from(merged.values()).sort((a,b)=>b.id-a.id);
+      renderHistory();
+      showToast(`${imported.length} simulation(s) restaurée(s) ✓`,'success');
+    }catch(err){showToast('Fichier invalide : '+err.message,'error');}
+    e.target.value='';
+  };
+  reader.readAsText(file);
+}
+// ---- Toast ----
+function showToast(msg,type=''){
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className='toast '+(type||''); t.textContent=msg; c.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(10px)';t.style.transition='all .3s';setTimeout(()=>t.remove(),300);},3000);
+}
+// Close modal on backdrop click
+document.getElementById('premium-modal').addEventListener('click',function(e){if(e.target===this)closePremiumModal();});
+// Init
+document.getElementById('sim-date').valueAsDate=new Date();
+toggleLOA();
+lucide.createIcons();
+
+
+/* ============================================================
+   LEASEVAL WEB — Auth, Sync & Stripe Extensions
+   ============================================================ */
+// ========================================================
+// LEASEVAL WEB — Auth & Premium (Supabase + Stripe réels)
+// ========================================================
+
+// ---- Supabase Client (CDN) ----
+// Les clés ANON sont publiques par design (sécurité via RLS)
+const SUPABASE_URL = window.SUPABASE_URL || 'REMPLACE_SUPABASE_URL';
+const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'REMPLACE_SUPABASE_ANON_KEY';
+const SITE_URL = window.location.origin;
+
+let _supabase = null;
+function getSupabase() {
+  if (!_supabase && window.supabase) {
+    _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+  return _supabase;
+}
+
+// ---- Auth State ----
+const auth = { user: null, profile: null, view: 'login', pendingPremium: false };
+
+function isPremiumUser() {
+  return state.premium || !!(auth.profile && (auth.profile.premium || auth.profile.admin));
+}
+function isAdminUser() { return !!(auth.profile && auth.profile.admin); }
+
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+// ---- Login / Register ----
+async function doLogin(email, pwd) {
+  const sb = getSupabase();
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
+  if (error) throw new Error(currentLang==='fr' ? _mapAuthError(error.message, 'fr') : _mapAuthError(error.message, 'en'));
+  auth.user = data.user;
+  await loadProfile();
+  await syncAfterLogin();
+  onAuthChange();
+}
+
+async function doRegister(email, pwd) {
+  const sb = getSupabase();
+  const { data, error } = await sb.auth.signUp({ email, password: pwd, options: { emailRedirectTo: SITE_URL } });
+  if (error) throw new Error(_mapAuthError(error.message, currentLang));
+  if (data.user && !data.session) {
+    // Email confirmation required
+    throw new Error(currentLang==='fr'
+      ? 'Un e-mail de confirmation a été envoyé. Vérifiez votre boîte mail puis reconnectez-vous.'
+      : 'A confirmation email was sent. Check your inbox then log in.');
+  }
+  auth.user = data.user;
+  await loadProfile();
+  await syncAfterLogin();
+  onAuthChange();
+}
+
+function doLogout() {
+  const sb = getSupabase();
+  sb.auth.signOut();
+  auth.user = null;
+  auth.profile = null;
+  state.premium = false;
+  closeUserMenu();
+  onAuthChange();
+  showToast(currentLang==='fr' ? 'Déconnecté' : 'Logged out', 'success');
+}
+
+function _mapAuthError(msg, lang) {
+  const fr = lang === 'fr';
+  if (msg.includes('Invalid login')) return fr ? 'E-mail ou mot de passe incorrect.' : 'Incorrect email or password.';
+  if (msg.includes('User already registered')) return fr ? 'Un compte existe déjà avec cet e-mail.' : 'An account already exists with this email.';
+  if (msg.includes('Password should be')) return fr ? 'Le mot de passe doit faire au moins 6 caractères.' : 'Password must be at least 6 characters.';
+  if (msg.includes('Unable to validate')) return fr ? 'Session expirée, veuillez vous reconnecter.' : 'Session expired, please log in again.';
+  return msg;
+}
+
+// ---- Profile ----
+async function loadProfile() {
+  if (!auth.user) return;
+  const sb = getSupabase();
+  const { data, error } = await sb.from('profiles').select('*').eq('id', auth.user.id).single();
+  if (!error && data) {
+    auth.profile = data;
+    state.premium = data.premium || data.admin;
+  }
+}
+
+// ---- Cloud Sync ----
+async function syncAfterLogin() {
+  if (!auth.user) return;
+  showSyncBadge('syncing');
+  const sb = getSupabase();
+
+  // Fetch cloud simulations
+  const { data: cloudSims, error } = await sb
+    .from('simulations')
+    .select('*')
+    .eq('user_id', auth.user.id)
+    .order('id', { ascending: false });
+
+  if (error) { console.warn('Sync fetch error:', error.message); showSyncBadge('none'); return; }
+
+  // Convert DB rows back to app format
+  const cloud = (cloudSims || []).map(dbRowToSim);
+
+  // Merge local + cloud (deduplicate by id)
+  const merged = new Map();
+  [...state.history, ...cloud].forEach(s => merged.set(s.id, s));
+  state.history = Array.from(merged.values()).sort((a,b) => b.id - a.id);
+
+  // Push local-only sims to cloud
+  const cloudIds = new Set((cloudSims||[]).map(r => r.id));
+  const localOnly = state.history.filter(s => !cloudIds.has(s.id));
+  if (localOnly.length > 0) {
+    await sb.from('simulations').upsert(localOnly.map(s => simToDbRow(s, auth.user.id)));
+  }
+
+  showSyncBadge('synced');
+  setTimeout(() => showSyncBadge('none'), 3000);
+  renderHistory();
+}
+
+async function syncSimToCloud(sim) {
+  if (!auth.user) return;
+  const sb = getSupabase();
+  await sb.from('simulations').upsert(simToDbRow(sim, auth.user.id));
+}
+
+async function deleteSimFromCloud(id) {
+  if (!auth.user) return;
+  const sb = getSupabase();
+  await sb.from('simulations').delete().eq('id', id).eq('user_id', auth.user.id);
+}
+
+// Convert sim object <-> DB row
+function simToDbRow(sim, userId) {
+  return {
+    id: sim.id, user_id: userId,
+    name: sim.name, type: sim.type, date: sim.date || null,
+    vnr: sim.VNR, l1: sim.L1 || 0, n_months: sim.N, lm: sim.LM,
+    km: sim.KM || 15000, oa: sim.OA ?? null,
+    services: sim.services || {}, results: sim.results || {},
+    score: sim.score || '', img_url: sim.imgUrl || null, vehicle: sim.vehicle || sim.name,
+  };
+}
+function dbRowToSim(row) {
+  return {
+    id: row.id, name: row.name, type: row.type, date: row.date || '',
+    VNR: row.vnr, L1: row.l1, N: row.n_months, LM: row.lm,
+    KM: row.km, OA: row.oa, services: row.services || {},
+    results: row.results || {}, score: row.score || '',
+    imgUrl: row.img_url || '', vehicle: row.vehicle || row.name,
+  };
+}
+
+// ---- Sync Badge ----
+function showSyncBadge(s) {
+  const el = document.getElementById('sync-badge');
+  if (!el) return;
+  if (s==='syncing') {
+    el.className='sync-badge syncing';
+    el.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>'+(currentLang==='fr'?'Sync…':'Syncing…');
+    el.style.display='inline-flex';
+  } else if (s==='synced') {
+    el.className='sync-badge synced';
+    el.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m20 6-11 11-5-5"/></svg>'+(currentLang==='fr'?'Synchronisé':'Synced');
+    el.style.display='inline-flex';
+  } else {
+    el.style.display='none';
+  }
+}
+
+// ---- Stripe Checkout (real) ----
+async function openStripeModal() {
+  if (!auth.user) { auth.pendingPremium=true; openAuthModal('login'); showToast(currentLang==='fr'?'Connectez-vous d\'abord pour acheter Premium':'Please log in to purchase Premium',''); return; }
+  // Call Vercel API to get Stripe Checkout URL
+  showToast(currentLang==='fr'?'Redirection vers le paiement…':'Redirecting to payment…', '');
+  try {
+    const res = await fetch('/api/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: auth.user.id, userEmail: auth.user.email }),
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url; // Redirect to Stripe Checkout
+    } else {
+      throw new Error(data.error || 'Erreur Stripe');
+    }
+  } catch (err) {
+    showToast('Erreur paiement : ' + err.message, 'error');
+  }
+}
+function closeStripeModal() {} // no-op (Stripe handles its own page)
+
+// Check if returning from Stripe success
+function checkStripeReturn() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('premium') === 'success') {
+    // Reload profile to get updated premium status
+    setTimeout(async () => {
+      await loadProfile();
+      onAuthChange();
+      showToast(t('toast_premium'), 'success');
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }, 1000);
+  }
+}
+
+// ---- Auth UI ----
+function onAuthChange() {
+  const u = auth.user;
+  const p = auth.profile;
+  const btnLogin = document.getElementById('auth-login-btn');
+  const avatar = document.getElementById('auth-avatar');
+  const syncBadge = document.getElementById('sync-badge');
+  const premBanner = document.getElementById('premium-banner');
+
+  if (u) {
+    if (btnLogin) btnLogin.style.display='none';
+    if (avatar) { avatar.style.display='flex'; avatar.textContent=(u.email||'?').charAt(0).toUpperCase(); }
+    if (syncBadge) syncBadge.style.display='inline-flex';
+    const isPrem = p && (p.premium || p.admin);
+    if (premBanner) premBanner.style.display=isPrem?'none':'flex';
+  } else {
+    if (btnLogin) btnLogin.style.display='inline-flex';
+    if (avatar) avatar.style.display='none';
+    if (syncBadge) syncBadge.style.display='none';
+    if (premBanner) premBanner.style.display='none';
+  }
+  updatePremiumUIweb();
+  renderHistory();
+  renderCompare();
+}
+
+function updatePremiumUIweb() {
+  if (!isPremiumUser()) return;
+  const blurred = document.getElementById('export-blurred');
+  const overlay = document.getElementById('premium-overlay');
+  if (blurred) blurred.classList.remove('premium-blur');
+  if (overlay) overlay.style.display='none';
+  if (blurred) blurred.innerHTML=`
+    <div class="section-title" data-i18n="result_export">${t('result_export')}</div>
+    <div style="display:flex;gap:var(--space-3);flex-wrap:wrap">
+      <button class="btn btn-secondary" onclick="exportCurrentPDF()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Export PDF</button>
+      <button class="btn btn-secondary" onclick="exportAllExcel()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        Export Excel</button>
+      <button class="btn btn-primary" onclick="switchTab('compare')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><path d="M12 20V4"/></svg>
+        ${currentLang==='fr'?'Comparer':'Compare'}</button>
+    </div>`;
+}
+
+// ---- Auth Modal ----
+function openAuthModal(view) {
+  auth.view = view || 'login';
+  renderAuthModal();
+  document.getElementById('auth-modal-backdrop').classList.add('open');
+  setTimeout(()=>{ const el=document.getElementById('auth-email'); if(el)el.focus(); }, 120);
+}
+function closeAuthModal() { document.getElementById('auth-modal-backdrop').classList.remove('open'); }
+
+function renderAuthModal() {
+  const isLogin = auth.view==='login';
+  const fr = currentLang==='fr';
+  document.getElementById('auth-modal').innerHTML=`
+    <h2>${isLogin?(fr?'Se connecter':'Log in'):(fr?'Créer un compte':'Create account')}</h2>
+    <p>${isLogin?(fr?'Accédez à vos simulations sur tous vos appareils.':'Access your simulations from any device.'):(fr?'Synchronisez vos simulations dans le cloud.':'Sync your simulations to the cloud.')}</p>
+    <div class="form-group" style="margin-bottom:var(--space-4)">
+      <label class="form-label" for="auth-email">${fr?'Adresse e-mail':'Email address'}</label>
+      <input type="email" id="auth-email" class="form-input" placeholder="${fr?'vous@exemple.fr':'you@example.com'}" autocomplete="email" oninput="clearAuthErr()">
+    </div>
+    <div class="form-group" style="margin-bottom:var(--space-5)">
+      <label class="form-label" for="auth-pwd">${fr?'Mot de passe':'Password'}</label>
+      <div class="form-input-eye">
+        <input type="password" id="auth-pwd" class="form-input" placeholder="${isLogin?'••••••••':(fr?'6 caractères min.':'Min. 6 characters')}" autocomplete="${isLogin?'current-password':'new-password'}" oninput="clearAuthErr()" onkeydown="if(event.key==='Enter')submitAuth()">
+        <button class="eye-btn" onclick="togglePwd()" type="button" aria-label="${fr?'Afficher':'Show'}">
+          <svg id="eye-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="auth-error" id="auth-err"></div>
+    <button class="btn btn-primary w-full" id="auth-submit" onclick="submitAuth()" style="height:46px;font-size:var(--text-base);margin-bottom:var(--space-3)">
+      ${isLogin?(fr?'Se connecter':'Log in'):(fr?'Créer le compte':'Create account')}
+    </button>
+    <div class="auth-switch">
+      ${isLogin
+        ? `${fr?'Pas encore de compte ?':'No account yet?'} <button onclick="switchAuthView('register')">${fr?'S\'inscrire':'Sign up'}</button>`
+        : `${fr?'Déjà un compte ?':'Already have an account?'} <button onclick="switchAuthView('login')">${fr?'Se connecter':'Log in'}</button>`}
+    </div>`;
+}
+
+function switchAuthView(v) { auth.view=v; renderAuthModal(); setTimeout(()=>{const el=document.getElementById('auth-email');if(el)el.focus();},50); }
+function clearAuthErr() { const el=document.getElementById('auth-err'); if(el){el.textContent='';el.classList.remove('visible');} }
+function togglePwd() {
+  const inp=document.getElementById('auth-pwd'), ico=document.getElementById('eye-ico');
+  if(!inp||!ico)return;
+  if(inp.type==='password'){inp.type='text';ico.innerHTML='<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';}
+  else{inp.type='password';ico.innerHTML='<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';}
+}
+
+async function submitAuth() {
+  const email = document.getElementById('auth-email')?.value?.trim();
+  const pwd = document.getElementById('auth-pwd')?.value;
+  const btn = document.getElementById('auth-submit');
+  if (!email||!pwd) { setAuthErr(currentLang==='fr'?'Veuillez remplir tous les champs.':'Please fill in all fields.'); return; }
+  btn.disabled=true;
+  btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin .8s linear infinite"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg> '+(currentLang==='fr'?'Chargement…':'Loading…');
+  try {
+    if (auth.view==='login') { await doLogin(email,pwd); closeAuthModal(); showToast(currentLang==='fr'?'Connecté ! Bienvenue 👋':'Logged in! Welcome 👋','success'); }
+    else { await doRegister(email,pwd); closeAuthModal(); showToast(currentLang==='fr'?'Compte créé 🎉':'Account created 🎉','success'); }
+    if (auth.pendingPremium) { auth.pendingPremium=false; openStripeModal(); }
+  } catch(err) {
+    setAuthErr(err.message);
+    btn.disabled=false;
+    btn.textContent=auth.view==='login'?(currentLang==='fr'?'Se connecter':'Log in'):(currentLang==='fr'?'Créer le compte':'Create account');
+  }
+}
+function setAuthErr(msg) { const el=document.getElementById('auth-err'); if(el){el.textContent=msg;el.classList.add('visible');} }
+
+// ---- User Menu ----
+function toggleUserMenu() {
+  const menu=document.getElementById('user-menu');
+  if(!menu)return;
+  if(menu.classList.contains('open')){ menu.classList.remove('open'); return; }
+  const u=auth.user, p=auth.profile;
+  const fr=currentLang==='fr';
+  const isPrem=p&&(p.premium||p.admin);
+  menu.innerHTML=`
+    <div class="user-menu-header">
+      <div class="user-menu-email">${u.email}</div>
+      <span class="user-menu-badge ${p?.admin?'admin':isPrem?'premium':'free'}">
+        ${p?.admin?'🧪 Admin':isPrem?'⭐ Premium':(fr?'🆓 Gratuit':'🆓 Free')}
+      </span>
+    </div>
+    ${!isPrem?`<button class="user-menu-item" onclick="closeUserMenu();document.getElementById('premium-modal').classList.add('open')">⭐ ${fr?'Passer Premium — 4,99 €':'Go Premium — €4.99'}</button>`:''}
+    <button class="user-menu-item danger" onclick="closeUserMenu();doLogout()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      ${fr?'Se déconnecter':'Log out'}</button>`;
+  menu.classList.add('open');
+}
+function closeUserMenu() { document.getElementById('user-menu')?.classList.remove('open'); }
+document.addEventListener('click', e => { if(!e.target.closest('#auth-avatar')&&!e.target.closest('#user-menu')) closeUserMenu(); });
+
+// ---- Intercept Premium CTA -> Stripe ----
+document.addEventListener('click', e => {
+  if (e.target.closest && e.target.closest('[onclick*="activatePremium"]')) {
+    e.stopImmediatePropagation(); e.preventDefault();
+    document.getElementById('premium-modal').classList.remove('open');
+    openStripeModal();
+  }
+}, true);
+
+// ---- Override delSim to also sync delete ----
+const _origDelSim = typeof delSim !== 'undefined' ? delSim : null;
+function delSim(id) {
+  state.history = state.history.filter(s=>s.id!==id);
+  renderHistory();
+  showToast(t('toast_deleted'));
+  deleteSimFromCloud(id).catch(()=>{});
+}
+
+// ---- Session restore on page load ----
+async function initAuth() {
+  const sb = getSupabase();
+  if (!sb) return;
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    auth.user = session.user;
+    await loadProfile();
+    await syncAfterLogin();
+  }
+  onAuthChange();
+  checkStripeReturn();
+
+  // Listen for auth changes (tab focus, token refresh)
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      auth.user = session.user;
+      await loadProfile();
+    } else if (event === 'SIGNED_OUT') {
+      auth.user = null; auth.profile = null; state.premium = false;
+    }
+    onAuthChange();
+  });
+}
+
+// ---- Init ----
+document.addEventListener('DOMContentLoaded', () => {
+  initAuth();
+  document.getElementById('auth-modal-backdrop')?.addEventListener('click', function(e){ if(e.target===this)closeAuthModal(); });
+});
+
+</script>
+</body>
+</html>
