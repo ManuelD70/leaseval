@@ -406,9 +406,9 @@
     </div>
 
     <div class="tabs" style="margin-bottom:var(--space-6)" role="tablist">
-      <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchTab(&#39;simulator&#39;)" id="tab-simulator" data-i18n="tab_new">Nouvelle simulation</button>
-      <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(&#39;history&#39;)" id="tab-history" data-i18n="tab_history">Historique</button>
-      <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(&#39;compare&#39;)" id="tab-compare" data-i18n="tab_compare">Comparaison</button>
+      <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchTab('simulator')" id="tab-simulator" data-i18n="tab_new">Nouvelle simulation</button>
+      <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('history')" id="tab-history" data-i18n="tab_history">Historique</button>
+      <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab('compare')" id="tab-compare" data-i18n="tab_compare">Comparaison</button>
     </div>
 
     <!-- SIMULATOR TAB -->
@@ -446,7 +446,7 @@
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="sim-title">Titre simulation</label>
-                  <input type="text" class="form-input" id="sim-title" placeholder="Nom affiché dans l&#39;historique" autocomplete="off" oninput="onSimTitleInput()">
+                  <input type="text" class="form-input" id="sim-title" placeholder="Nom affiché dans l'historique" autocomplete="off" oninput="onSimTitleInput()">
                   <span class="form-hint" id="sim-title-hint" style="color: var(--color-primary); font-size: 10px; display: none;">Copié depuis Marque / modèle</span>
                 </div>
               </div>
@@ -518,23 +518,23 @@
               <div class="section-title-line"></div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2);margin-bottom:var(--space-5)">
-              <div class="service-toggle on" id="svc-s1" onclick="toggleService(&#39;s1&#39;)" role="checkbox" aria-checked="true" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;)toggleService(&#39;s1&#39;)">
+              <div class="service-toggle on" id="svc-s1" onclick="toggleService('s1')" role="checkbox" aria-checked="true" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleService('s1')">
                 <div class="service-info"><div class="service-icon">🔧</div><span class="service-name" data-i18n="svc_s1">Entretien</span></div>
                 <div class="toggle-switch"></div>
               </div>
-              <div class="service-toggle on" id="svc-s2" onclick="toggleService(&#39;s2&#39;)" role="checkbox" aria-checked="true" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;)toggleService(&#39;s2&#39;)">
+              <div class="service-toggle on" id="svc-s2" onclick="toggleService('s2')" role="checkbox" aria-checked="true" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleService('s2')">
                 <div class="service-info"><div class="service-icon">⭐</div><span class="service-name" data-i18n="svc_s2">Extension garantie</span></div>
                 <div class="toggle-switch"></div>
               </div>
-              <div class="service-toggle on" id="svc-s3" onclick="toggleService(&#39;s3&#39;)" role="checkbox" aria-checked="true" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;)toggleService(&#39;s3&#39;)">
+              <div class="service-toggle on" id="svc-s3" onclick="toggleService('s3')" role="checkbox" aria-checked="true" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleService('s3')">
                 <div class="service-info"><div class="service-icon">💰</div><span class="service-name" data-i18n="svc_s3">Perte financière</span></div>
                 <div class="toggle-switch"></div>
               </div>
-              <div class="service-toggle" id="svc-s4" onclick="toggleService(&#39;s4&#39;)" role="checkbox" aria-checked="false" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;)toggleService(&#39;s4&#39;)">
+              <div class="service-toggle" id="svc-s4" onclick="toggleService('s4')" role="checkbox" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleService('s4')">
                 <div class="service-info"><div class="service-icon">🛞</div><span class="service-name" data-i18n="svc_s4">Pneumatiques</span></div>
                 <div class="toggle-switch"></div>
               </div>
-              <div class="service-toggle" id="svc-s5" onclick="toggleService(&#39;s5&#39;)" role="checkbox" aria-checked="false" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;)toggleService(&#39;s5&#39;)">
+              <div class="service-toggle" id="svc-s5" onclick="toggleService('s5')" role="checkbox" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleService('s5')">
                 <div class="service-info"><div class="service-icon">🚗</div><span class="service-name" data-i18n="svc_s5">Véhicule rempl.</span></div>
                 <div class="toggle-switch"></div>
               </div>
@@ -743,7 +743,7 @@
             <!-- Export (premium) -->
             <div class="card premium-lock" id="res-export-section">
               <div id="export-content">
-                <div class="" id="export-blurred"><div class="section-title">Exports &amp; comparaison</div><div style="display:flex;gap:var(--space-3);flex-wrap:wrap"><button class="btn btn-secondary" onclick="exportCurrentPDF()">📄 Export PDF</button><button class="btn btn-secondary" onclick="exportAllExcel()">📊 Export Excel</button><button class="btn btn-primary" onclick="switchTab(&#39;compare&#39;)">⚖️ Comparer</button></div></div>
+                <div class="" id="export-blurred"><div class="section-title">Exports &amp; comparaison</div><div style="display:flex;gap:var(--space-3);flex-wrap:wrap"><button class="btn btn-secondary" onclick="exportCurrentPDF()">📄 Export PDF</button><button class="btn btn-secondary" onclick="exportAllExcel()">📊 Export Excel</button><button class="btn btn-primary" onclick="switchTab('compare')">⚖️ Comparer</button></div></div>
                 <div class="premium-overlay" id="premium-overlay" style="display: none;">
                   <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--space-4);box-shadow:var(--shadow-lg);text-align:center;max-width:280px">
                     <div style="font-size:24px;margin-bottom:var(--space-2)">🔒</div>
@@ -771,7 +771,7 @@
             <button class="btn btn-secondary btn-sm" onclick="exportAllExcel()" id="btn-export-all-excel" style="display: inline-flex;">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="file-spreadsheet" aria-hidden="true" style="width:14px;height:14px" class="lucide lucide-file-spreadsheet"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M8 13h2"></path><path d="M14 13h2"></path><path d="M8 17h2"></path><path d="M14 17h2"></path></svg> Excel
             </button>
-            <button class="btn btn-secondary btn-sm" onclick="exportHistoryJSON()" title="Sauvegarder l&#39;historique (JSON)">
+            <button class="btn btn-secondary btn-sm" onclick="exportHistoryJSON()" title="Sauvegarder l'historique (JSON)">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="download" aria-hidden="true" style="width:14px;height:14px" class="lucide lucide-download"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg> Backup
             </button>
             <label class="btn btn-secondary btn-sm" style="cursor:pointer" title="Restaurer un historique (JSON)">
@@ -781,7 +781,7 @@
             <button class="btn btn-ghost btn-sm" onclick="clearHistory()" data-i18n="btn_clear">Vider</button>
           </div>
         </div>
-        <div id="history-container"><div class="history-list"><div class="history-item" onclick="loadSim(1775672672968)" role="button" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;)loadSim(1775672672968)">
+        <div id="history-container"><div class="history-list"><div class="history-item" onclick="loadSim(1775672672968)" role="button" tabindex="0" onkeydown="if(event.key==='Enter')loadSim(1775672672968)">
       <img src="./leaseval_files/Renault_Twingo_E-Tech_IMG_5910.jpg" alt="" style="width:56px;height:44px;object-fit:cover;border-radius:var(--radius-md);flex-shrink:0">
       <div class="history-info">
         <div class="history-title">renault twingo e-tech 4 ans</div>
@@ -796,7 +796,7 @@
         <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();exportPDF(1775672672968)" title="PDF">📄</button>
         <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();delSim(1775672672968)" title="Supprimer"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trash-2" aria-hidden="true" style="width:13px;height:13px" class="lucide lucide-trash-2"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
       </div>
-    </div><div class="history-item" onclick="loadSim(1775647293359)" role="button" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;)loadSim(1775647293359)">
+    </div><div class="history-item" onclick="loadSim(1775647293359)" role="button" tabindex="0" onkeydown="if(event.key==='Enter')loadSim(1775647293359)">
       <img src="./leaseval_files/Renault_Twingo_E-Tech_IMG_5910.jpg" alt="" style="width:56px;height:44px;object-fit:cover;border-radius:var(--radius-md);flex-shrink:0">
       <div class="history-info">
         <div class="history-title">renault twingo e-tech 3 ans</div>
@@ -811,7 +811,7 @@
         <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();exportPDF(1775647293359)" title="PDF">📄</button>
         <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();delSim(1775647293359)" title="Supprimer"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trash-2" aria-hidden="true" style="width:13px;height:13px" class="lucide lucide-trash-2"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
       </div>
-    </div><div class="history-item" onclick="loadSim(1775647265754)" role="button" tabindex="0" onkeydown="if(event.key===&#39;Enter&#39;)loadSim(1775647265754)">
+    </div><div class="history-item" onclick="loadSim(1775647265754)" role="button" tabindex="0" onkeydown="if(event.key==='Enter')loadSim(1775647265754)">
       <img src="./leaseval_files/Renault_Twingo_E-Tech_IMG_5910.jpg" alt="" style="width:56px;height:44px;object-fit:cover;border-radius:var(--radius-md);flex-shrink:0">
       <div class="history-info">
         <div class="history-title">renault twingo e-tech 5 ans</div>
