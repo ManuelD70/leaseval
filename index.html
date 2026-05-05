@@ -1830,7 +1830,7 @@ const delay = ms => new Promise(r => setTimeout(r, ms));
 async function doLogin(email, pwd) {
   const sb = getSupabase();
   const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
-  if (error) throw new Error(currentLang==='fr' ? _mapAuthError(error.message, 'fr') : _mapAuthError(error.message, 'en'));
+  if (error) throw new Error(state.lang==='fr' ? _mapAuthError(error.message, 'fr') : _mapAuthError(error.message, 'en'));
   auth.user = data.user;
   await loadProfile();
   await syncAfterLogin();
@@ -1840,10 +1840,10 @@ async function doLogin(email, pwd) {
 async function doRegister(email, pwd) {
   const sb = getSupabase();
   const { data, error } = await sb.auth.signUp({ email, password: pwd, options: { emailRedirectTo: SITE_URL } });
-  if (error) throw new Error(_mapAuthError(error.message, currentLang));
+  if (error) throw new Error(_mapAuthError(error.message, state.lang));
   if (data.user && !data.session) {
     // Email confirmation required
-    throw new Error(currentLang==='fr'
+    throw new Error(state.lang==='fr'
       ? 'Un e-mail de confirmation a été envoyé. Vérifiez votre boîte mail puis reconnectez-vous.'
       : 'A confirmation email was sent. Check your inbox then log in.');
   }
@@ -1861,7 +1861,7 @@ function doLogout() {
   state.premium = false;
   closeUserMenu();
   onAuthChange();
-  showToast(currentLang==='fr' ? 'Déconnecté' : 'Logged out', 'success');
+  showToast(state.lang==='fr' ? 'Déconnecté' : 'Logged out', 'success');
 }
 
 function _mapAuthError(msg, lang) {
@@ -1958,11 +1958,11 @@ function showSyncBadge(s) {
   if (!el) return;
   if (s==='syncing') {
     el.className='sync-badge syncing';
-    el.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>'+(currentLang==='fr'?'Sync…':'Syncing…');
+    el.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>'+(state.lang==='fr'?'Sync…':'Syncing…');
     el.style.display='inline-flex';
   } else if (s==='synced') {
     el.className='sync-badge synced';
-    el.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m20 6-11 11-5-5"/></svg>'+(currentLang==='fr'?'Synchronisé':'Synced');
+    el.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m20 6-11 11-5-5"/></svg>'+(state.lang==='fr'?'Synchronisé':'Synced');
     el.style.display='inline-flex';
   } else {
     el.style.display='none';
@@ -1971,9 +1971,9 @@ function showSyncBadge(s) {
 
 // ---- Stripe Checkout (real) ----
 async function openStripeModal() {
-  if (!auth.user) { auth.pendingPremium=true; openAuthModal('login'); showToast(currentLang==='fr'?'Connectez-vous d\'abord pour acheter Premium':'Please log in to purchase Premium',''); return; }
+  if (!auth.user) { auth.pendingPremium=true; openAuthModal('login'); showToast(state.lang==='fr'?'Connectez-vous d\'abord pour acheter Premium':'Please log in to purchase Premium',''); return; }
   // Call Vercel API to get Stripe Checkout URL
-  showToast(currentLang==='fr'?'Redirection vers le paiement…':'Redirecting to payment…', '');
+  showToast(state.lang==='fr'?'Redirection vers le paiement…':'Redirecting to payment…', '');
   try {
     const res = await fetch('/api/create-checkout', {
       method: 'POST',
@@ -2050,7 +2050,7 @@ function updatePremiumUIweb() {
         Export Excel</button>
       <button class="btn btn-primary" onclick="switchTab('compare')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><path d="M12 20V4"/></svg>
-        ${currentLang==='fr'?'Comparer':'Compare'}</button>
+        ${state.lang==='fr'?'Comparer':'Compare'}</button>
     </div>`;
 }
 
@@ -2065,7 +2065,7 @@ function closeAuthModal() { document.getElementById('auth-modal-backdrop').class
 
 function renderAuthModal() {
   const isLogin = auth.view==='login';
-  const fr = currentLang==='fr';
+  const fr = state.lang==='fr';
   document.getElementById('auth-modal').innerHTML=`
     <h2>${isLogin?(fr?'Se connecter':'Log in'):(fr?'Créer un compte':'Create account')}</h2>
     <p>${isLogin?(fr?'Accédez à vos simulations sur tous vos appareils.':'Access your simulations from any device.'):(fr?'Synchronisez vos simulations dans le cloud.':'Sync your simulations to the cloud.')}</p>
@@ -2106,17 +2106,17 @@ async function submitAuth() {
   const email = document.getElementById('auth-email')?.value?.trim();
   const pwd = document.getElementById('auth-pwd')?.value;
   const btn = document.getElementById('auth-submit');
-  if (!email||!pwd) { setAuthErr(currentLang==='fr'?'Veuillez remplir tous les champs.':'Please fill in all fields.'); return; }
+  if (!email||!pwd) { setAuthErr(state.lang==='fr'?'Veuillez remplir tous les champs.':'Please fill in all fields.'); return; }
   btn.disabled=true;
-  btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin .8s linear infinite"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg> '+(currentLang==='fr'?'Chargement…':'Loading…');
+  btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin .8s linear infinite"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg> '+(state.lang==='fr'?'Chargement…':'Loading…');
   try {
-    if (auth.view==='login') { await doLogin(email,pwd); closeAuthModal(); showToast(currentLang==='fr'?'Connecté ! Bienvenue 👋':'Logged in! Welcome 👋','success'); }
-    else { await doRegister(email,pwd); closeAuthModal(); showToast(currentLang==='fr'?'Compte créé 🎉':'Account created 🎉','success'); }
+    if (auth.view==='login') { await doLogin(email,pwd); closeAuthModal(); showToast(state.lang==='fr'?'Connecté ! Bienvenue 👋':'Logged in! Welcome 👋','success'); }
+    else { await doRegister(email,pwd); closeAuthModal(); showToast(state.lang==='fr'?'Compte créé 🎉':'Account created 🎉','success'); }
     if (auth.pendingPremium) { auth.pendingPremium=false; openStripeModal(); }
   } catch(err) {
     setAuthErr(err.message);
     btn.disabled=false;
-    btn.textContent=auth.view==='login'?(currentLang==='fr'?'Se connecter':'Log in'):(currentLang==='fr'?'Créer le compte':'Create account');
+    btn.textContent=auth.view==='login'?(state.lang==='fr'?'Se connecter':'Log in'):(state.lang==='fr'?'Créer le compte':'Create account');
   }
 }
 function setAuthErr(msg) { const el=document.getElementById('auth-err'); if(el){el.textContent=msg;el.classList.add('visible');} }
@@ -2127,7 +2127,7 @@ function toggleUserMenu() {
   if(!menu)return;
   if(menu.classList.contains('open')){ menu.classList.remove('open'); return; }
   const u=auth.user, p=auth.profile;
-  const fr=currentLang==='fr';
+  const fr=state.lang==='fr';
   const isPrem=p&&(p.premium||p.admin);
   menu.innerHTML=`
     <div class="user-menu-header">
